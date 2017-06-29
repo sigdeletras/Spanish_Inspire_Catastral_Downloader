@@ -223,17 +223,15 @@ class Spanish_Inspire_Catastral_Downloader:
     #         self.msgBar.pushMessage(prov[0:2]+ muni[0:5], level=QgsMessageBar.INFO)
 
     def not_data(self):
-        
+        """Message for fields without information"""
         self.msgBar.pushMessage('Completar datos de municipio o indicar la ruta de descarga', level=QgsMessageBar.INFO)
 
-        #QMessageBox.information('Hola')
     def filter_municipality(self, index):
+        """Message for fields without information"""
         
         filtroprovincia = self.dlg.comboBox_province.currentText()
         self.dlg.comboBox_municipality.clear() 
-        # self.dlg.comboBox_municipality.addItems([muni for muni in diccionario2.keys() if muni == filtroprovincia])
-        
-        # self.dlg.comboBox_municipality.addItems(listMunicipios)
+
         self.dlg.comboBox_municipality.addItems([muni for muni in listMunicipios if muni[0:2] == filtroprovincia[0:2]])
 
         inecode_catastro = self.dlg.comboBox_municipality.currentText()
@@ -243,6 +241,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
 
     def download(self):
+        """Dowload data funtion"""
 
         if self.dlg.comboBox_municipality.currentText() == '' or self.dlg.lineEdit_path.text() == '':
 
@@ -333,28 +332,18 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.lineEdit_path.clear()
 
         # Datos para provincias
-        #self.dlg.comboBox_ineCod.addItems(listMunicipios)
         self.dlg.comboBox_province.clear()
         self.dlg.comboBox_municipality.clear()
-
         self.dlg.comboBox_province.addItems(listProvincias)
-        # self.dlg.comboBox_municipality.addItems(listMunicipios)
         self.dlg.comboBox_province.currentIndexChanged.connect(self.filter_municipality)
-
         self.dlg.pushButton_run.clicked.connect(self.download)
        
-
         # show the dialog
         self.dlg.show()
-        # muestra gestor de directorios
-
-
-
-
 
         # Run the dialog event loop
         result = self.dlg.exec_()
-      
+     
         # See if OK was pressed
         if result:
 
