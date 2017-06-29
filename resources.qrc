@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/Spanish_Inspire_Catastral_Downloader" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
