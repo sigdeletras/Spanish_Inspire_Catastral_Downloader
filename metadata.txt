@@ -9,15 +9,15 @@
 [general]
 name=Spanish Inspire Catastral Downloader
 qgisMinimumVersion=2.0
-description=Spanish Inspire Catastral Downloader
+description=Descripcion Spanish Inspire Catastral Downloader
 version=0.1
 author=Patricio Soriano :: SIGdeletras.com
 email=pasoriano@sigdeletras.com
 
-about=Spanish_Inspire_Catastral_Downloader
+about=Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y direcciones de España. La descarga usa el servicio ATOM según la Directiva Inspire. (http://www.catastro.minhap.gob.es/webinspire/index.html)
 
-tracker=www.sigdeletras.com
-repository=www.sigdeletras.com
+tracker=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
+repository=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
 # End of mandatory metadata
 
 # Recommended items:
@@ -26,9 +26,9 @@ repository=www.sigdeletras.com
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=
+tags=cadastre, inspire, catastro, Spain, España, ATOM, INSPIRE
 
-homepage=
+homepage=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
 category=Plugins
 icon=icon.png
 # experimental flag
