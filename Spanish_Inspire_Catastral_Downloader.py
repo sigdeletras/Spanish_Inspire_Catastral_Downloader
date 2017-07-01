@@ -21,35 +21,28 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon
-
-from PyQt4.QtGui import QFileDialog #para cargar el buscador de archivos
-
-
-
+import os.path
+import qgis
 # Initialize Qt resources from file resources.py
 import resources
-from listamuni import *
+import urllib
+import zipfile
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt4.QtGui import QAction, QIcon
+from PyQt4.QtGui import QFileDialog  # para cargar el buscador de archivos
+from PyQt4.QtGui import QMessageBox
 # Import the code for the dialog
 from Spanish_Inspire_Catastral_Downloader_dialog import Spanish_Inspire_Catastral_DownloaderDialog
-import os.path
-
-import qgis
-from PyQt4.QtGui import QMessageBox
 from qgis.core import QgsProject
 from qgis.gui import QgsMessageBar
 
-import urllib
-import zipfile
+from listamuni import *
 
-listProvincias =  LISTPROV
+listProvincias = LISTPROV
 listMunicipios = LISTMUNI
-
 
 codprov = ''
 codmuni = ''
-
 
 
 class Spanish_Inspire_Catastral_Downloader:
@@ -67,7 +60,6 @@ class Spanish_Inspire_Catastral_Downloader:
         self.iface = iface
         self.msgBar = iface.messageBar()
 
-
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
@@ -83,7 +75,6 @@ class Spanish_Inspire_Catastral_Downloader:
 
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
-
 
         # Declare instance attributes
         self.actions = []
@@ -107,18 +98,17 @@ class Spanish_Inspire_Catastral_Downloader:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('Spanish_Inspire_Catastral_Downloader', message)
 
-
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -209,12 +199,12 @@ class Spanish_Inspire_Catastral_Downloader:
     def select_output_folder(self):
         """Select output folder"""
 
-        self.dlg.lineEdit_path.clear() 
+        self.dlg.lineEdit_path.clear()
         folder = QFileDialog.getExistingDirectory(self.dlg, "Select folder")
         self.dlg.lineEdit_path.setText(folder)
 
     # def show_variables(self):
-        
+
     #     if self.dlg.comboBox_municipality.currentText() == '':
     #         self.msgBar.pushMessage('No se ha indicado el nunicipio', level=QgsMessageBar.INFO)
     #     else:
@@ -228,9 +218,9 @@ class Spanish_Inspire_Catastral_Downloader:
 
     def filter_municipality(self, index):
         """Message for fields without information"""
-        
+
         filtroprovincia = self.dlg.comboBox_province.currentText()
-        self.dlg.comboBox_municipality.clear() 
+        self.dlg.comboBox_municipality.clear()
 
         self.dlg.comboBox_municipality.addItems([muni for muni in listMunicipios if muni[0:2] == filtroprovincia[0:2]])
 
@@ -238,7 +228,6 @@ class Spanish_Inspire_Catastral_Downloader:
 
         codprov = inecode_catastro[0:2]
         codmuni = inecode_catastro[0:5]
-
 
     def download(self):
         """Dowload data funtion"""
@@ -259,8 +248,8 @@ class Spanish_Inspire_Catastral_Downloader:
             # download de Cadastral Parcels
             if self.dlg.checkBox_parcels.isChecked():
 
-                
-                url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (codprov, inecode_catastro, codmuni)
+                url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (
+                    codprov, inecode_catastro, codmuni)
                 # self.msgBar.pushMessage(url, level=QgsMessageBar.SUCCESS)
                 zippath = self.dlg.lineEdit_path.text()
 
@@ -268,40 +257,41 @@ class Spanish_Inspire_Catastral_Downloader:
                     os.makedirs(zippath + '\%s' % inecode_catastro)
                 except OSError:
                     pass
-                
-                zipParcels = zippath + "\%s" % inecode_catastro + "\%s_Parcels.zip" % inecode_catastro # poner fecha
+
+                zipParcels = zippath + "\%s" % inecode_catastro + "\%s_Parcels.zip" % inecode_catastro  # poner fecha
 
                 urllib.urlretrieve(url.encode('utf-8'), zipParcels)
-            
+
             # download de Buildings
             if self.dlg.checkBox_buildings.isChecked():
 
-                url = u'http://www.catastro.minhap.es/INSPIRE/Buildings/%s/%s/A.ES.SDGC.BU.%s.zip' % (codprov, inecode_catastro, codmuni)
+                url = u'http://www.catastro.minhap.es/INSPIRE/Buildings/%s/%s/A.ES.SDGC.BU.%s.zip' % (
+                    codprov, inecode_catastro, codmuni)
                 zippath = self.dlg.lineEdit_path.text()
 
                 try:
                     os.makedirs(zippath + '\%s' % inecode_catastro)
                 except OSError:
                     pass
-                
 
-                zipbuildings = zippath + "\%s" % inecode_catastro + "\%s_Buildings.zip" % inecode_catastro # poner fecha
+                zipbuildings = zippath + "\%s" % inecode_catastro + "\%s_Buildings.zip" % inecode_catastro  # poner fecha
                 urllib.urlretrieve(url.encode('utf-8'), zipbuildings)
 
             # download de Addresses
             if self.dlg.checkBox_addresses.isChecked():
 
-                url = u'http://www.catastro.minhap.es/INSPIRE/Addresses/%s/%s/A.ES.SDGC.AD.%s.zip' % (codprov, inecode_catastro, codmuni)
+                url = u'http://www.catastro.minhap.es/INSPIRE/Addresses/%s/%s/A.ES.SDGC.AD.%s.zip' % (
+                    codprov, inecode_catastro, codmuni)
                 zippath = self.dlg.lineEdit_path.text()
- 
+
                 try:
                     os.makedirs(zippath + '\%s' % inecode_catastro)
                 except OSError:
                     pass
 
-                zipAddresses = zippath + "\%s" % inecode_catastro + "\%s_Addresses.zip" % inecode_catastro # poner fecha
+                zipAddresses = zippath + "\%s" % inecode_catastro + "\%s_Addresses.zip" % inecode_catastro  # poner fecha
                 urllib.urlretrieve(url.encode('utf-8'), zipAddresses)
-                       ## Descomprime y carga en proyecto si se marca la opcion
+                ## Descomprime y carga en proyecto si se marca la opcion
 
             # self.msgBar.clearWidgets()
             self.msgBar.pushMessage("Finished!", level=QgsMessageBar.SUCCESS)
@@ -309,21 +299,22 @@ class Spanish_Inspire_Catastral_Downloader:
             ## debe descomprimir cualquier archivos ZIP de la carptea
             if self.dlg.checkBox_load_layers.isChecked():
                 ## Descomprime los zips downloaddos
-                
+
                 self.msgBar.pushMessage("Start loading GML files...", level=QgsMessageBar.INFO)
 
                 for zipfilecatastro in os.listdir(zippath + "\%s" % inecode_catastro):
                     if zipfilecatastro[-4:] == ".zip":
-                        with zipfile.ZipFile(zippath + "\%s" % inecode_catastro + '\\'+zipfilecatastro, "r") as z:
+                        with zipfile.ZipFile(zippath + "\%s" % inecode_catastro + '\\' + zipfilecatastro, "r") as z:
                             z.extractall(zippath + "\%s" % inecode_catastro)
-                        #self.msgBar.pushMessage('Descomprimidos '+zippath, level=QgsMessageBar.SUCCESS)
+                            # self.msgBar.pushMessage('Descomprimidos '+zippath, level=QgsMessageBar.SUCCESS)
 
                 ## Carga los GMLs
                 for gmlfile in os.listdir(zippath + "\%s" % inecode_catastro):
                     if gmlfile[-4:] == ".gml":
-                        layer = self.iface.addVectorLayer(zippath + "\%s" % inecode_catastro + '\\' + gmlfile, "", "ogr")
+                        layer = self.iface.addVectorLayer(zippath + "\%s" % inecode_catastro + '\\' + gmlfile, "",
+                                                          "ogr")
 
-                # self.msgBar.pushMessage("Finished!", level=QgsMessageBar.SUCCESS)
+                        # self.msgBar.pushMessage("Finished!", level=QgsMessageBar.SUCCESS)
 
     def run(self):
         """Run method that performs all the real work"""
@@ -337,17 +328,13 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.comboBox_province.addItems(listProvincias)
         self.dlg.comboBox_province.currentIndexChanged.connect(self.filter_municipality)
         self.dlg.pushButton_run.clicked.connect(self.download)
-       
+
         # show the dialog
         self.dlg.show()
 
         # Run the dialog event loop
         result = self.dlg.exec_()
-     
+
         # See if OK was pressed
         if result:
-
             pass
-
-            
-            
