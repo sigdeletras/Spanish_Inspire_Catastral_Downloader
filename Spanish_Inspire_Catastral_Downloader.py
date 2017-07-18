@@ -23,7 +23,7 @@
 """
 import os.path
 import qgis
-# Initialize Qt resources from file resources.py
+
 import resources
 import urllib
 import zipfile
@@ -31,7 +31,7 @@ from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
 from PyQt4.QtGui import QFileDialog  # para cargar el buscador de archivos
 from PyQt4.QtGui import QMessageBox
-# Import the code for the dialog
+
 from Spanish_Inspire_Catastral_Downloader_dialog import Spanish_Inspire_Catastral_DownloaderDialog
 from qgis.core import QgsProject
 from qgis.gui import QgsMessageBar
@@ -204,15 +204,6 @@ class Spanish_Inspire_Catastral_Downloader:
         folder = QFileDialog.getExistingDirectory(self.dlg, "Select folder")
         self.dlg.lineEdit_path.setText(folder)
 
-    # def show_variables(self):
-
-    #     if self.dlg.comboBox_municipality.currentText() == '':
-    #         self.msgBar.pushMessage('No se ha indicado el nunicipio', level=QgsMessageBar.INFO)
-    #     else:
-    #         prov = self.dlg.comboBox_province.currentText()
-    #         muni = self.dlg.comboBox_municipality.currentText()
-    #         self.msgBar.pushMessage(prov[0:2]+ muni[0:5], level=QgsMessageBar.INFO)
-
     def not_data(self):
         """Message for fields without information"""
         self.msgBar.pushMessage('Completar datos de municipio o indicar la ruta de descarga', level=QgsMessageBar.INFO)
@@ -244,14 +235,11 @@ class Spanish_Inspire_Catastral_Downloader:
             codmuni = inecode_catastro[0:5]
             # pass
 
-            # self.msgBar.pushMessage("Start downloading zip files...", level=QgsMessageBar.INFO)
-
             # download de Cadastral Parcels
             if self.dlg.checkBox_parcels.isChecked():
 
                 url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (
                     codprov, inecode_catastro, codmuni)
-                # self.msgBar.pushMessage(url, level=QgsMessageBar.SUCCESS)
                 zippath = self.dlg.lineEdit_path.text()
 
                 try:
@@ -292,22 +280,19 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 zipAddresses = zippath + "\%s" % inecode_catastro + "\%s_Addresses.zip" % inecode_catastro  # poner fecha
                 urllib.urlretrieve(url.encode('utf-8'), zipAddresses)
-                ## Descomprime y carga en proyecto si se marca la opcion
-
-            # self.msgBar.clearWidgets()
+                
             self.msgBar.pushMessage("Finished!", level=QgsMessageBar.SUCCESS)
 
-            ## debe descomprimir cualquier archivos ZIP de la carptea
-            if self.dlg.checkBox_load_layers.isChecked():
-                ## Descomprime los zips downloaddos
+            ## Descomprime y carga en proyecto si se marca la opcion
 
+            if self.dlg.checkBox_load_layers.isChecked():
+                ## Descomprime los zips
                 self.msgBar.pushMessage("Start loading GML files...", level=QgsMessageBar.INFO)
 
                 for zipfilecatastro in os.listdir(zippath + "\%s" % inecode_catastro):
                     if zipfilecatastro[-4:] == ".zip":
                         with zipfile.ZipFile(zippath + "\%s" % inecode_catastro + '\\' + zipfilecatastro, "r") as z:
                             z.extractall(zippath + "\%s" % inecode_catastro)
-                            # self.msgBar.pushMessage('Descomprimidos '+zippath, level=QgsMessageBar.SUCCESS)
 
                 ## Carga los GMLs
                 for gmlfile in os.listdir(zippath + "\%s" % inecode_catastro):
@@ -315,20 +300,16 @@ class Spanish_Inspire_Catastral_Downloader:
                         layer = self.iface.addVectorLayer(zippath + "\%s" % inecode_catastro + '\\' + gmlfile, "",
                                                           "ogr")
 
-                        # self.msgBar.pushMessage("Finished!", level=QgsMessageBar.SUCCESS)
 
     def run(self):
         """Run method that performs all the real work"""
-        # muestra variables
-        # self.dlg.pushButton_show.clicked.connect(self.show_variables)  
+
         self.dlg.lineEdit_path.clear()
 
-        # Datos para provincias
         self.dlg.comboBox_province.clear()
         self.dlg.comboBox_municipality.clear()
         self.dlg.comboBox_province.addItems(listProvincias)
         self.dlg.comboBox_province.currentIndexChanged.connect(self.filter_municipality)
-        # self.dlg.pushButton_run.clicked.connect(self.download)
 
         # show the dialog
         self.dlg.show()
