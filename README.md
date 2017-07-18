@@ -19,7 +19,7 @@ Donde tendremos que reemplazar “username” por nuestro usuario.
 
 ## Uso
 
-Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú <b>Complementos>Spanish Inspire Catastral Downloader</b>
+Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú <b>Complementos>Descarga Catrastro Inspire</b>
 
 Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 <ul>
