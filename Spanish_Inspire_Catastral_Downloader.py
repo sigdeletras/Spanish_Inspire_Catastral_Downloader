@@ -180,11 +180,12 @@ class Spanish_Inspire_Catastral_Downloader:
         icon_path = ':/plugins/Spanish_Inspire_Catastral_Downloader/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u''),
+            text=self.tr(u'&Spanish Inspire Catastral Downloader'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
         self.dlg.pushButton_select_path.clicked.connect(self.select_output_folder)
+        self.dlg.pushButton_run.clicked.connect(self.download)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -327,7 +328,7 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.comboBox_municipality.clear()
         self.dlg.comboBox_province.addItems(listProvincias)
         self.dlg.comboBox_province.currentIndexChanged.connect(self.filter_municipality)
-        self.dlg.pushButton_run.clicked.connect(self.download)
+        # self.dlg.pushButton_run.clicked.connect(self.download)
 
         # show the dialog
         self.dlg.show()

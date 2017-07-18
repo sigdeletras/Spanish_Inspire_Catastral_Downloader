@@ -77,12 +77,12 @@
     <rect>
      <x>40</x>
      <y>200</y>
-     <width>141</width>
+     <width>221</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>Cargar en proyecto QGIS</string>
+    <string>Add layers to the QGIS project</string>
    </property>
   </widget>
   <widget class="QWidget" name="horizontalLayoutWidget">
@@ -98,21 +98,21 @@
     <item>
      <widget class="QCheckBox" name="checkBox_parcels">
       <property name="text">
-       <string>Pacelas</string>
+       <string>Cadastral Parcels</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QCheckBox" name="checkBox_buildings">
       <property name="text">
-       <string>Edificios</string>
+       <string>Buildings</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QCheckBox" name="checkBox_addresses">
       <property name="text">
-       <string>Direcciones</string>
+       <string>Addresses</string>
       </property>
      </widget>
     </item>
@@ -128,7 +128,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Provincia</string>
+    <string>Province</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_municipio">
@@ -136,12 +136,12 @@
     <rect>
      <x>260</x>
      <y>20</y>
-     <width>46</width>
-     <height>13</height>
+     <width>71</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Municipio</string>
+    <string>Municipality</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_descarga">
@@ -154,7 +154,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Carpeta de descarga</string>
+    <string>Download folder</string>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_run">
@@ -167,7 +167,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Ejecutar</string>
+    <string>Run</string>
    </property>
   </widget>
  </widget>
