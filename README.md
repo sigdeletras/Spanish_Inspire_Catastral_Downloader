@@ -8,7 +8,7 @@ Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y di
 
 El complemento puede ser instalado desde el menú <b>Complementos>Administrar e instalar complementos</b> de QGIS. Para localizar de forma rápida el complemento puede introducirse el término <i>"catastro"</i> en la herramienta de búsqueda.
 
-<img src="help/search.PNG" width="50%">
+<img src="help/search.PNG" width="70%">
 
 Igualmente, puede descargarse el archivo zip desde este repositorio y <b>descomprimirlo en la carpeta de plugins de QGIS</b> según el sistema operativo.
 
