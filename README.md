@@ -21,6 +21,8 @@ Donde tendremos que reemplazar “username” por nuestro usuario.
 
 Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú <b>Complementos>Descarga Catrastro Inspire</b> o bien <b>Spanish Inspire Catastral Downloader</b> si tenemos instalado QGIS en otro idioma.
 
+<img src="help/cadastral_layers.PNG" width="90%">
+
 Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 <ul>
 <li>Seleccionar la provincia</li>
@@ -30,3 +32,4 @@ Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 </ul>
 
 Si se desea añadir las capas GML descargardas al proyecto QGIS activo se debe marcar la casilla correspondiente.
+<img src="help/ui.PNG" width="90%">
