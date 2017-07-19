@@ -8,7 +8,7 @@ QGIS Plugin for the download of cadastral data of parcels, buildings and address
 
 El complemento puede ser instalado desde el menú <b>Complementos>Administrar e instalar complementos</b> de QGIS. Para localizar de forma rápida el complemento puede introducirse el término <i>"catastro"</i> en la herramienta de búsqueda.
 
-Igualmente puede descargarse el archivo zip desde este repositorio y descomprimirlo en la carpeta de plugins de QGIS según el sistema operativo.
+Igualmente, puede descargarse el archivo zip desde este repositorio y <b>descomprimirlo en la carpeta de plugins de QGIS</b> según el sistema operativo.
 
 <ul>
 <li>Windows: <i>c:\Users\username\.qgis2\python\plugins</i></li>
@@ -19,7 +19,7 @@ Donde tendremos que reemplazar “username” por nuestro usuario.
 
 ## Uso
 
-Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú <b>Complementos>Descarga Catrastro Inspire</b>
+Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú <b>Complementos>Descarga Catrastro Inspire</b> o bien <b>Spanish Inspire Catastral Downloader</b> si tenemos instalado QGIS en otro idioma.
 
 Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 <ul>
