@@ -2,7 +2,7 @@
 
 Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y direcciones de España. La descarga usa el servicio ATOM según la Directiva Inspire. (<a href='http://www.catastro.minhap.gob.es/webinspire/index.html'>http://www.catastro.minhap.gob.es/webinspire/index.html</a>)
 
-QGIS Plugin for the download of cadastral data of parcels, buildings and addresses of Spain. The download uses the ATOM service according to the Inspire Directive. (<a href='http://www.catastro.minhap.gob.es/webinspire/index_eng.html'>http://www.catastro.minhap.gob.es/webinspire/index_eng.html</a>)
+<i>QGIS Plugin for the download of cadastral data of parcels, buildings and addresses of Spain. The download uses the ATOM service according to the Inspire Directive. (<a href='http://www.catastro.minhap.gob.es/webinspire/index_eng.html'>http://www.catastro.minhap.gob.es/webinspire/index_eng.html</a>)</i>
 
 ## Instalar plugin
 
@@ -21,7 +21,7 @@ Donde tendremos que reemplazar “username” por nuestro usuario.
 
 Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú <b>Complementos>Descarga Catrastro Inspire</b> o bien <b>Spanish Inspire Catastral Downloader</b> si tenemos instalado QGIS en otro idioma.
 
-<img src="help/ui.PNG" width="90%">
+<img src="help/ui.PNG" width="50%">
 
 Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 <ul>
@@ -33,4 +33,4 @@ Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 
 Si se desea añadir las capas GML descargardas al proyecto QGIS activo se debe marcar la casilla correspondiente.
 
-<img src="help/cadastral_layers.PNG" width="50%">
+<img src="help/cadastral_layers.PNG" width="95%">
