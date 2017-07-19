@@ -46,8 +46,12 @@ LISTPROV = ['02-ALBACETE',
             '47-VALLADOLID',
             '49-ZAMORA',
             '50-ZARAGOZA',
-            '51-CEUTA',
-            '52-MELILLA']
+            '51-CARTAGENA',
+            '52-GIJON',
+            '53-JEREZ DE LA FRONTERA',
+            '54-VIGO',
+            '55-CEUTA',
+            '56-MELILLA']
 
 LISTMUNI = [u'02001-ABENGIBRE',
             u'02002-ALATOZ',
@@ -7652,5 +7656,6 @@ LISTMUNI = [u'02001-ABENGIBRE',
             u'50300-VISTABELLA',
             u'50900-ZARAGOZA',
             u'50304-ZUERA',
-            u'51001-CEUTA',
-            u'52001-MELILLA']
+            u'55101-CEUTA',
+            u'56101-MELILLA',
+            u'52014-CARREÑO']
