@@ -234,7 +234,8 @@ class Spanish_Inspire_Catastral_Downloader:
             codprov = inecode_catastro[0:2]
             codmuni = inecode_catastro[0:5]
             zippath = self.dlg.lineEdit_path.text()
-	    wd = os.path.join(zippath,inecode_catastro)  #Añadida esta variable para no tener que llamar todas las veces a os.path.join(zippath,inecode_catastro)
+	    wd = os.path.join(zippath,inecode_catastro)  
+	    #Añadida la variable wd para no tener que llamar todas las veces a os.path.join(zippath,inecode_catastro)
             # pass
 
             # download de Cadastral Parcels
