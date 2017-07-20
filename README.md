@@ -51,7 +51,7 @@ Los archivos geográficos (GML) contenidos en cada conjunto de datos son:
 
 El PDF con la descripción completa de la estructura de datos puede consultarse en el siguiente [enlace](http://www.catastro.minhap.es/webinspire/documentos/Conjuntos%20de%20datos.pdf)
 
-<img src="help cadastral_layers.PNG" width="95%">
+<img src="help\cadastral_layers.PNG" width="95%">
 
 ## 2DO
 
