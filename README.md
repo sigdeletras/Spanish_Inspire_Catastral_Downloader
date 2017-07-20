@@ -35,7 +35,7 @@ Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 
 Si se desea añadir las capas GML descargardas al proyecto QGIS activo se debe marcar la casilla correspondiente.
 
-## Conjunto de datos INSPIRE de la Dirección General de Catastro
+### Conjunto de datos INSPIRE de la Dirección General de Catastro
 
 Los archivos geográficos (GML) contenidos en cada conjunto de datos son:
 
@@ -51,9 +51,9 @@ Los archivos geográficos (GML) contenidos en cada conjunto de datos son:
 
 El PDF con la descripción completa de la estructura de datos puede consultarse en el siguiente [enlace](http://www.catastro.minhap.es/webinspire/documentos/Conjuntos%20de%20datos.pdf)
 
-<img src="help/cadastral_layers.PNG" width="95%">
+<img src="help cadastral_layers.PNG" width="95%">
 
-#2DO
+## 2DO
 
 - Añadir barra de proceso que avise de la descarga.
 - Probar en Linux y revisar el tema del PATH
