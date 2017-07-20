@@ -285,7 +285,8 @@ class Spanish_Inspire_Catastral_Downloader:
 
             ## Descomprime y carga en proyecto si se marca la opcion
 
-            if self.dlg.checkBox_load_layers.isChecked():
+            if self.dlg.checkBox_load_layers.isChecked() and (self.dlg.checkBox_parcels.isChecked() or self.dlg.checkBox_buildings.isChecked() or 
+			self.dlg.checkBox_addresses.isChecked()):
                 ## Descomprime los zips
                 self.msgBar.pushMessage("Start loading GML files...", level=QgsMessageBar.INFO)
 
@@ -299,6 +300,8 @@ class Spanish_Inspire_Catastral_Downloader:
                     if gmlfile.endswith('.gml'):
                         layer = self.iface.addVectorLayer(os.path.join(wd,gmlfile), "",
                                                           "ogr")
+	    else:
+		self.msgBar.pushMessage("Seleccione al menos un dataset para descargar.", level=QgsMessageBar.INFO)
 
 
     def run(self):
