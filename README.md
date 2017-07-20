@@ -52,3 +52,11 @@ Los archivos geográficos (GML) contenidos en cada conjunto de datos son:
 El PDF con la descripción completa de la estructura de datos puede consultarse en el siguiente [enlace](http://www.catastro.minhap.es/webinspire/documentos/Conjuntos%20de%20datos.pdf)
 
 <img src="help/cadastral_layers.PNG" width="95%">
+
+#2DO
+
+- Añadir barra de proceso que avise de la descarga.
+- Probar en Linux y revisar el tema del PATH
+- Posibilidad de applicar simbología a las capas
+- ¿Traducir campos?
+- Preparlo para QGIS3
