@@ -35,17 +35,20 @@ Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 
 Si se desea añadir las capas GML descargardas al proyecto QGIS activo se debe marcar la casilla correspondiente.
 
+## Conjunto de datos INSPIRE de la Dirección General de Catastro
+
 Los archivos geográficos (GML) contenidos en cada conjunto de datos son:
 
 - Conjunto de Datos de Parcela Catastral (CP Cadastral Parcel)
-  - CadastralParcel
-  - CadastralZoning
+  - CadastralParcel. Parcela catastral.
+  - CadastralZoning. Manzanas en suelo urbano o a los polígonos en suelo rústico.
 - Conjunto de Datos de Edificios (BU Buildings)
-  - Building
-  - BuildingPart
-  - OtherConstructions
+  - Building. Edificio. 
+  - BuildingPart. Cada una de las construcciones de una parcela catastral que tiene volumen homogéneo, y pueden ser sobre y bajo rasante.
+  - OtherConstructions. Piscinas que contienen el atributo OtherConstructionNatureValue calificado cómo openAirPool.
 - Conjunto de Datos de Direcciones (AD Addresses)
-- Address
+  - Address. Geometría del punto donde georreferencia la dirección física (centroide de la parcela o entrada del portal)
 
 El PDF con la descripción completa de la estructura de datos puede consultarse en el siguiente [enlace](http://www.catastro.minhap.es/webinspire/documentos/Conjuntos%20de%20datos.pdf)
+
 <img src="help/cadastral_layers.PNG" width="95%">
