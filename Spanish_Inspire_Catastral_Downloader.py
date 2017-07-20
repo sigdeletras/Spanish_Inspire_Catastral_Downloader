@@ -314,6 +314,10 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.comboBox_province.addItems(listProvincias)
         self.dlg.comboBox_province.currentIndexChanged.connect(self.filter_municipality)
 
+        self.dlg.checkBox_parcels.setChecked(0)
+        self.dlg.checkBox_buildings.setChecked(0)
+        self.dlg.checkBox_addresses.setChecked(0)
+
         # show the dialog
         self.dlg.show()
 
