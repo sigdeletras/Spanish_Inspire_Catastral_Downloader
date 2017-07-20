@@ -233,6 +233,8 @@ class Spanish_Inspire_Catastral_Downloader:
             inecode_catastro = self.dlg.comboBox_municipality.currentText()
             codprov = inecode_catastro[0:2]
             codmuni = inecode_catastro[0:5]
+            zippath = self.dlg.lineEdit_path.text()
+	    wd = os.path.join(zippath,inecode_catastro)  #Añadida esta variable para no tener que llamar todas las veces a os.path.join(zippath,inecode_catastro)
             # pass
 
             # download de Cadastral Parcels
@@ -240,14 +242,13 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (
                     codprov, inecode_catastro, codmuni)
-                zippath = self.dlg.lineEdit_path.text()
 
                 try:
-                    os.makedirs(zippath + '\%s' % inecode_catastro)
+                    os.makedirs(wd)
                 except OSError:
                     pass
 
-                zipParcels = zippath + "\%s" % inecode_catastro + "\%s_Parcels.zip" % inecode_catastro  # poner fecha
+                zipParcels = os.path.join(wd,"%s_Parcels.zip" % inecode_catastro) # poner fecha
 
                 urllib.urlretrieve(url.encode('utf-8'), zipParcels)
 
@@ -256,14 +257,13 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 url = u'http://www.catastro.minhap.es/INSPIRE/Buildings/%s/%s/A.ES.SDGC.BU.%s.zip' % (
                     codprov, inecode_catastro, codmuni)
-                zippath = self.dlg.lineEdit_path.text()
 
                 try:
-                    os.makedirs(zippath + '\%s' % inecode_catastro)
+                    os.makedirs(wd)
                 except OSError:
                     pass
 
-                zipbuildings = zippath + "\%s" % inecode_catastro + "\%s_Buildings.zip" % inecode_catastro  # poner fecha
+                zipbuildings = os.path.join(wd,"%s_Buildings.zip" % inecode_catastro)  # poner fecha
                 urllib.urlretrieve(url.encode('utf-8'), zipbuildings)
 
             # download de Addresses
@@ -271,14 +271,13 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 url = u'http://www.catastro.minhap.es/INSPIRE/Addresses/%s/%s/A.ES.SDGC.AD.%s.zip' % (
                     codprov, inecode_catastro, codmuni)
-                zippath = self.dlg.lineEdit_path.text()
 
                 try:
-                    os.makedirs(zippath + '\%s' % inecode_catastro)
+                    os.makedirs(wd)
                 except OSError:
                     pass
 
-                zipAddresses = zippath + "\%s" % inecode_catastro + "\%s_Addresses.zip" % inecode_catastro  # poner fecha
+                zipAddresses = os.path.join(wd,"%s_Addresses.zip" % inecode_catastro) # poner fecha
                 urllib.urlretrieve(url.encode('utf-8'), zipAddresses)
                 
             self.msgBar.pushMessage("Finished!", level=QgsMessageBar.SUCCESS)
@@ -289,15 +288,15 @@ class Spanish_Inspire_Catastral_Downloader:
                 ## Descomprime los zips
                 self.msgBar.pushMessage("Start loading GML files...", level=QgsMessageBar.INFO)
 
-                for zipfilecatastro in os.listdir(zippath + "\%s" % inecode_catastro):
-                    if zipfilecatastro[-4:] == ".zip":
-                        with zipfile.ZipFile(zippath + "\%s" % inecode_catastro + '\\' + zipfilecatastro, "r") as z:
-                            z.extractall(zippath + "\%s" % inecode_catastro)
+                for zipfilecatastro in os.listdir(wd):
+                    if zipfilecatastro.endswith('.zip'):
+                        with zipfile.ZipFile(os.path.join(wd, zipfilecatastro), "r") as z:
+                            z.extractall(wd)
 
                 ## Carga los GMLs
-                for gmlfile in os.listdir(zippath + "\%s" % inecode_catastro):
-                    if gmlfile[-4:] == ".gml":
-                        layer = self.iface.addVectorLayer(zippath + "\%s" % inecode_catastro + '\\' + gmlfile, "",
+                for gmlfile in os.listdir(wd):
+                    if gmlfile.endswith('.gml'):
+                        layer = self.iface.addVectorLayer(os.path.join(wd,gmlfile), "",
                                                           "ogr")
 
 
@@ -320,3 +319,4 @@ class Spanish_Inspire_Catastral_Downloader:
         # See if OK was pressed
         if result:
             pass
+
