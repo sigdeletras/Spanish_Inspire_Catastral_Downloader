@@ -4,7 +4,7 @@ Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y di
 
 <i>QGIS Plugin for the download of cadastral data of parcels, buildings and addresses of Spain. The download uses the ATOM service according to the Inspire Directive. (<a href='http://www.catastro.minhap.gob.es/webinspire/index_eng.html'>http://www.catastro.minhap.gob.es/webinspire/index_eng.html</a>)</i>
 
-Para más información puede consultarse la entrada en [http://www.sigdeletras.com/2017/plugin-de-qgis-para-descarga-de-datos-catastrales-inspire](SIGdeletras.com)
+Para más información puede consultarse la entrada en [SIGdeletras.com](http://www.sigdeletras.com/2017/plugin-de-qgis-para-descarga-de-datos-catastrales-inspire)
 
 ## Instalar plugin
 
