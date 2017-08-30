@@ -24,17 +24,11 @@ repository=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
 
 # Uncomment the following line and add your changelog:
 changelog=
-	** General **
-28.07.2016 V1.0.0:
-	- QGIS3 Migration
-28.07.2016 V0.3.1:
-	- Errores en nombres de municipios con punto.
-21.07.2016 V0.3:
-	- Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)
-21.07.2016 V0.2:
-	- Se añaden las "gerencias" de Gijón, Jerez, Vigo, Ceuta y Melilla (por Francisco Pérez Sampayo)
-19.07.2016 V0.1:
-	- Primera versión
+	28.07.2016 V0.4: Migration for QGIS3. QGIS 2.99 compatible, Python 3, QT5
+	28.07.2016 V0.3.1: Errores en nombres de municipios con punto.
+	21.07.2016 V0.3: Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)
+	21.07.2016 V0.2: Se añaden las "gerencias" de Gijón, Jerez, Vigo, Ceuta y Melilla (por Francisco Pérez Sampayo)
+	19.07.2016 V0.1: Primera versión
 
 # Tags are comma separated with spaces allowed
 tags=cadastre, inspire, catastro, Spain, España, ATOM, INSPIRE
