@@ -21,15 +21,35 @@
  ***************************************************************************/
 """
 
+# Import the PyQt and QGIS libraries
+from qgis.PyQt.QtCore import Qt
 import os
+# from PyQt5.QtWidgets import QDialog
 
-from PyQt4 import QtGui, uic
+try:
+    from qgis.core import Qgis
+    from PyQt5.QtCore import *
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import *
+    from PyQt5 import uic
+    QT_VERSION=5
+    os.environ['QT_API'] = 'pyqt5'
+except:
+    from PyQt4.QtCore import *
+    from PyQt4.QtGui import *
+    from PyQt4 import uic
+    QT_VERSION=4
+    
+import os.path
+from qgis.core import *
+from qgis.gui import *
+
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'Spanish_Inspire_Catastral_Downloader_dialog_base.ui'))
 
 
-class Spanish_Inspire_Catastral_DownloaderDialog(QtGui.QDialog, FORM_CLASS):
+class Spanish_Inspire_Catastral_DownloaderDialog(QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(Spanish_Inspire_Catastral_DownloaderDialog, self).__init__(parent)

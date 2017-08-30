@@ -9,8 +9,9 @@
 [general]
 name=Spanish Inspire Catastral Downloader
 qgisMinimumVersion=2.14
+qgisMaximumVersion=3.99
 description=Descarga de cartografía catastral según Inspire
-version=0.3.1
+version=1.0
 author=Patricio Soriano :: SIGdeletras.com
 email=pasoriano@sigdeletras.com
 
@@ -22,7 +23,11 @@ repository=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-changelog=28.07.2016 V0.3.1:
+changelog=
+	** General **
+28.07.2016 V1.0.0:
+	- QGIS3 Migration
+28.07.2016 V0.3.1:
 	- Errores en nombres de municipios con punto.
 21.07.2016 V0.3:
 	- Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)

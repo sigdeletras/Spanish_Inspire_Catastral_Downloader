@@ -21,20 +21,41 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os.path
-import urllib
+import urllib.request
 import zipfile
 
-import qgis
-import resources
-from PyQt4.QtCore import QSettings , QTranslator , qVersion , QCoreApplication
-from PyQt4.QtGui import QAction , QIcon
-from PyQt4.QtGui import QFileDialog  # para cargar el buscador de archivos
-from PyQt4.QtGui import QMessageBox
-from Spanish_Inspire_Catastral_Downloader_dialog import Spanish_Inspire_Catastral_DownloaderDialog
-from listamuni import *
+# Import the PyQt and QGIS libraries
+from qgis.PyQt.QtCore import Qt
+#from PyQt5 import QtCore, QtGui, QtWidgets
+import os
+#from PyQt5.QtWidgets import QDialog
+ 
+try:
+    from qgis.core import Qgis
+    from PyQt5.QtCore import *
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import *
+    from PyQt5 import uic
+    QT_VERSION=5
+    os.environ['QT_API'] = 'pyqt5'
+except:
+    from PyQt4.QtCore import *
+    from PyQt4.QtGui import *
+    from PyQt4 import uic
+    from qgis.core import QgsMapLayerRegistry
+    QT_VERSION=4
+    
+import os.path
+from qgis.core import *
+
+#import resources
+from .resources import *
+
+from .Spanish_Inspire_Catastral_Downloader_dialog import Spanish_Inspire_Catastral_DownloaderDialog
+from .listamuni import *
 from qgis.core import QgsProject
 from qgis.gui import QgsMessageBar
+
 
 listProvincias = LISTPROV
 listMunicipios = LISTMUNI
@@ -250,7 +271,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 zipParcels = os.path.join(wd , "%s_Parcels.zip" % inecode_catastro)  # poner fecha
 
-                urllib.urlretrieve(url.encode('utf-8') , zipParcels)
+                urllib.request.urlretrieve(url , zipParcels)
 
             # download de Buildings
             if self.dlg.checkBox_buildings.isChecked():
@@ -264,7 +285,7 @@ class Spanish_Inspire_Catastral_Downloader:
                     pass
 
                 zipbuildings = os.path.join(wd , "%s_Buildings.zip" % inecode_catastro)  # poner fecha
-                urllib.urlretrieve(url.encode('utf-8') , zipbuildings)
+                urllib.request.urlretrieve(url , zipbuildings)
 
             # download de Addresses
             if self.dlg.checkBox_addresses.isChecked():
@@ -278,7 +299,7 @@ class Spanish_Inspire_Catastral_Downloader:
                     pass
 
                 zipAddresses = os.path.join(wd , "%s_Addresses.zip" % inecode_catastro)  # poner fecha
-                urllib.urlretrieve(url.encode('utf-8') , zipAddresses)
+                urllib.request.urlretrieve(url , zipAddresses)
 
             self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS)
 
