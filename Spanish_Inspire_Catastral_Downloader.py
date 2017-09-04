@@ -23,12 +23,21 @@
 """
 import urllib.request
 import zipfile
+import urllib
+import urlparse
 
 # Import the PyQt and QGIS libraries
 from qgis.PyQt.QtCore import Qt
 #from PyQt5 import QtCore, QtGui, QtWidgets
 import os
+import shutil
 #from PyQt5.QtWidgets import QDialog
+#For Debug
+try:
+    import sys
+    from pydevd import *
+except:
+    None
  
 try:
     from qgis.core import Qgis
@@ -169,6 +178,8 @@ class Spanish_Inspire_Catastral_Downloader:
 
         # Create the dialog (after translation) and keep reference
         self.dlg = Spanish_Inspire_Catastral_DownloaderDialog()
+        self.dlg.setWindowFlags(Qt.WindowSystemMenuHint | Qt.WindowTitleHint) 
+        
 
         icon = QIcon(icon_path)
         action = QAction(icon , text , parent)
@@ -206,6 +217,7 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.pushButton_select_path.clicked.connect(self.select_output_folder)
         self.dlg.pushButton_run.clicked.connect(self.download)
 
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -240,91 +252,130 @@ class Spanish_Inspire_Catastral_Downloader:
         codprov = inecode_catastro[0:2]
         codmuni = inecode_catastro[0:5]
 
+    def reporthook(self,blocknum, blocksize, totalsize):
+        readsofar = blocknum * blocksize
+        if totalsize > 0:
+            percent = readsofar * 1e2 / totalsize
+            self.dlg.progressBar.setValue(int(percent))
+         
+    def EncodeUrl(self,url):
+        parsed_link = urlparse.urlsplit(url.encode('utf8'))
+        parsed_link = parsed_link._replace(path=urllib.quote(parsed_link.path))
+        encoded_link = parsed_link.geturl()
+        return encoded_link
+    
     def download(self):
         """Dowload data funtion"""
-
+ 
         if self.dlg.comboBox_municipality.currentText() == '' or self.dlg.lineEdit_path.text() == '':
-
             self.not_data()
 
         else:
 
-            inecode_catastro = self.dlg.comboBox_municipality.currentText()
-            codprov = inecode_catastro[0:2]
-            codmuni = inecode_catastro[0:5]
-            zippath = self.dlg.lineEdit_path.text()
+            try:
+                
+                QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+                inecode_catastro = self.dlg.comboBox_municipality.currentText()
+                codprov = inecode_catastro[0:2]
+                codmuni = inecode_catastro[0:5]
+                zippath = self.dlg.lineEdit_path.text()
+    
+                wd = os.path.join(zippath , inecode_catastro)
+    
+                # download de Cadastral Parcels
+                if self.dlg.checkBox_parcels.isChecked():
+    
+                    url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (
+                        codprov , inecode_catastro , codmuni)
+    
+                    try:
+                        os.makedirs(wd)
+                    except OSError:
+                        pass
+    
+                    zipParcels = os.path.join(wd , "%s_Parcels.zip" % inecode_catastro)  # poner fecha
+    
 
-            wd = os.path.join(zippath , inecode_catastro)
+                    e_url=self.EncodeUrl(url)
+                    try:
+                        urllib.request.urlretrieve(e_url , zipParcels, self.reporthook)
+                    except:
+                        shutil.rmtree(wd)
+                        raise
+    
+                # download de Buildings
+                if self.dlg.checkBox_buildings.isChecked():
+    
+                    url = u'http://www.catastro.minhap.es/INSPIRE/Buildings/%s/%s/A.ES.SDGC.BU.%s.zip' % (
+                        codprov , inecode_catastro , codmuni)
+    
+                    try:
+                        os.makedirs(wd)
+                    except OSError:
+                        pass
+    
+                    zipbuildings = os.path.join(wd , "%s_Buildings.zip" % inecode_catastro)  # poner fecha
+                    
+                    e_url=self.EncodeUrl(url)
+                    
+                    try:
+                        urllib.request.urlretrieve(e_url , zipbuildings, self.reporthook)
+                    except:
+                        shutil.rmtree(wd)
+                        raise
+    
+                # download de Addresses
+                if self.dlg.checkBox_addresses.isChecked():
+    
+                    url = u'http://www.catastro.minhap.es/INSPIRE/Addresses/%s/%s/A.ES.SDGC.AD.%s.zip' % (
+                        codprov , inecode_catastro , codmuni)
+    
+                    try:
+                        os.makedirs(wd)
+                    except OSError:
+                        pass
+    
+                    zipAddresses = os.path.join(wd , "%s_Addresses.zip" % inecode_catastro)  # poner fecha
+                    
+                    e_url=self.EncodeUrl(url)
+                    
+                    try:
+                        urllib.request.urlretrieve(e_url , zipAddresses, self.reporthook)
+                    except:
+                        shutil.rmtree(wd)
+                        raise
+    
+                self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS)
+                self.dlg.progressBar.setValue(100)#No llega al 100% aunque lo descargue,es random
+                QApplication.restoreOverrideCursor()
+                
+                if self.dlg.checkBox_load_layers.isChecked():
+                    try:
+                        ## Descomprime los zips
+                        self.msgBar.pushMessage("Start loading GML files..." , level=QgsMessageBar.INFO)
 
-            # pass
-
-            # download de Cadastral Parcels
-            if self.dlg.checkBox_parcels.isChecked():
-
-                url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (
-                    codprov , inecode_catastro , codmuni)
-
-                try:
-                    os.makedirs(wd)
-                except OSError:
-                    pass
-
-                zipParcels = os.path.join(wd , "%s_Parcels.zip" % inecode_catastro)  # poner fecha
-
-                urllib.request.urlretrieve(url , zipParcels)
-
-            # download de Buildings
-            if self.dlg.checkBox_buildings.isChecked():
-
-                url = u'http://www.catastro.minhap.es/INSPIRE/Buildings/%s/%s/A.ES.SDGC.BU.%s.zip' % (
-                    codprov , inecode_catastro , codmuni)
-
-                try:
-                    os.makedirs(wd)
-                except OSError:
-                    pass
-
-                zipbuildings = os.path.join(wd , "%s_Buildings.zip" % inecode_catastro)  # poner fecha
-                urllib.request.urlretrieve(url , zipbuildings)
-
-            # download de Addresses
-            if self.dlg.checkBox_addresses.isChecked():
-
-                url = u'http://www.catastro.minhap.es/INSPIRE/Addresses/%s/%s/A.ES.SDGC.AD.%s.zip' % (
-                    codprov , inecode_catastro , codmuni)
-
-                try:
-                    os.makedirs(wd)
-                except OSError:
-                    pass
-
-                zipAddresses = os.path.join(wd , "%s_Addresses.zip" % inecode_catastro)  # poner fecha
-                urllib.request.urlretrieve(url , zipAddresses)
-
-            self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS)
-
-            # Descomprime y carga en proyecto si se marca la opcion
-
-            if self.dlg.checkBox_load_layers.isChecked() and (
-                    self.dlg.checkBox_parcels.isChecked() or self.dlg.checkBox_buildings.isChecked() or
-                self.dlg.checkBox_addresses.isChecked()):
-                ## Descomprime los zips
-                self.msgBar.pushMessage("Start loading GML files..." , level=QgsMessageBar.INFO)
-
-                for zipfilecatastro in os.listdir(wd):
-                    if zipfilecatastro.endswith('.zip'):
-                        with zipfile.ZipFile(os.path.join(wd , zipfilecatastro) , "r") as z:
-                            z.extractall(wd)
-
-                ## Carga los GMLs
-                for gmlfile in os.listdir(wd):
-                    if gmlfile.endswith('.gml'):
-                        layer = self.iface.addVectorLayer(os.path.join(wd , gmlfile) , "" ,
-                                                          "ogr")
-            else:
-                self.msgBar.pushMessage("Seleccione al menos un dataset para descargar." , level=QgsMessageBar.INFO)
-
-
+                        for zipfilecatastro in os.listdir(wd):
+                            if zipfilecatastro.endswith('.zip'):
+                                with zipfile.ZipFile(os.path.join(wd , zipfilecatastro) , "r") as z:
+                                    z.extractall(wd)
+            
+                        ## Carga los GMLs
+                        for gmlfile in os.listdir(wd):
+                            if gmlfile.endswith('.gml'):
+                                layer = self.iface.addVectorLayer(os.path.join(wd , gmlfile) , "" ,
+                                                             "ogr")
+                                
+                        self.msgBar.pushMessage("fichero descomprimido correctamente." , level=QgsMessageBar.INFO)
+                        
+                    except:
+                        self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=QgsMessageBar.WARNING)
+                        QApplication.restoreOverrideCursor()
+                        
+                QApplication.restoreOverrideCursor()
+                
+            except Exception as e:
+                self.msgBar.pushMessage("Failed! "+str(e) , level=QgsMessageBar.WARNING)
+                QApplication.restoreOverrideCursor()
 
     def run(self):
         """Run method that performs all the real work"""
@@ -341,6 +392,8 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.checkBox_addresses.setChecked(0)
 
         # show the dialog
+        self.dlg.progressBar.setValue(0)
+        self.dlg.setWindowIcon(QIcon (':/plugins/Spanish_Inspire_Catastral_Downloader/icon.png')); 
         self.dlg.show()
 
         # Run the dialog event loop
