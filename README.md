@@ -60,7 +60,6 @@ El PDF con la descripción completa de la estructura de datos puede consultarse 
 ## 2DO
 
 - Posibilidad de applicar simbología a las capas
-- Preparlo para QGIS3
 
 ## Changelog
 
