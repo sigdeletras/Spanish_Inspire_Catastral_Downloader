@@ -24,7 +24,10 @@
 import urllib.request
 import zipfile
 import urllib
-import urlparse
+from urllib import request, parse
+
+#TimeOut para la descarga de 5 segundos
+import socket
 
 # Import the PyQt and QGIS libraries
 from qgis.PyQt.QtCore import Qt
@@ -71,7 +74,9 @@ listMunicipios = LISTMUNI
 
 codprov = ''
 codmuni = ''
-
+ 
+from .Config import _proxy
+from .Config import _port
 
 class Spanish_Inspire_Catastral_Downloader:
     """QGIS Plugin Implementation."""
@@ -110,6 +115,8 @@ class Spanish_Inspire_Catastral_Downloader:
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'Spanish_Inspire_Catastral_Downloader')
         self.toolbar.setObjectName(u'Spanish_Inspire_Catastral_Downloader')
+        
+        socket.setdefaulttimeout(5)
 
     # noinspection PyMethodMayBeStatic
     def tr(self , message):
@@ -237,7 +244,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
     def not_data(self):
         """Message for fields without information"""
-        self.msgBar.pushMessage('Completar datos de municipio o indicar la ruta de descarga' , level=QgsMessageBar.INFO)
+        self.msgBar.pushMessage('Completar datos de municipio o indicar la ruta de descarga' , level=QgsMessageBar.INFO, duration=3)
 
     def filter_municipality(self , index):
         """Message for fields without information"""
@@ -252,21 +259,41 @@ class Spanish_Inspire_Catastral_Downloader:
         codprov = inecode_catastro[0:2]
         codmuni = inecode_catastro[0:5]
 
+    #Progress Download
     def reporthook(self,blocknum, blocksize, totalsize):
         readsofar = blocknum * blocksize
         if totalsize > 0:
             percent = readsofar * 1e2 / totalsize
             self.dlg.progressBar.setValue(int(percent))
-         
+    
+    #Ser Proxy
+    def set_proxy(self):
+        proxy_handler = request.ProxyHandler({
+            'http': '%s:%s' % (_proxy,_port),
+            'https': '%s:%s' % (_proxy,_port)
+        })
+        opener = request.build_opener(proxy_handler)
+        request.install_opener(opener)
+        return
+ 
+    #Unset Proxy
+    def unset_proxy(self):
+        proxy_handler = request.ProxyHandler({})
+        opener = request.build_opener(proxy_handler)
+        request.install_opener(opener)
+        return
+    
+    #Encode URL Download
     def EncodeUrl(self,url):
-        parsed_link = urlparse.urlsplit(url.encode('utf8'))
-        parsed_link = parsed_link._replace(path=urllib.quote(parsed_link.path))
-        encoded_link = parsed_link.geturl()
+        url = parse.urlsplit(url)
+        url = list(url)
+        url[2] = parse.quote(url[2])
+        encoded_link = parse.urlunsplit(url)
         return encoded_link
     
     def download(self):
         """Dowload data funtion"""
- 
+
         if self.dlg.comboBox_municipality.currentText() == '' or self.dlg.lineEdit_path.text() == '':
             self.not_data()
 
@@ -281,6 +308,21 @@ class Spanish_Inspire_Catastral_Downloader:
                 zippath = self.dlg.lineEdit_path.text()
     
                 wd = os.path.join(zippath , inecode_catastro)
+                
+                proxy_support = urllib.request.ProxyHandler({})
+                opener = urllib.request.build_opener(proxy_support)
+                urllib.request.install_opener(opener)
+
+                #Estabelcemos un proxy si lo ha definido el usuario
+                try:
+                    if (_proxy!= None and _proxy!= "") and (_port!= None and _port!= ""):
+                        self.set_proxy()
+                    else:
+                        self.unset_proxy()
+                except Exception as e:
+                    QApplication.restoreOverrideCursor()
+                    self.msgBar.pushMessage("Error estableciendo el proxy : "+ str(e) , level=QgsMessageBar.WARNING, duration=3)
+                    raise
     
                 # download de Cadastral Parcels
                 if self.dlg.checkBox_parcels.isChecked():
@@ -345,14 +387,14 @@ class Spanish_Inspire_Catastral_Downloader:
                         shutil.rmtree(wd)
                         raise
     
-                self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS)
+                self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS, duration=3)
                 self.dlg.progressBar.setValue(100)#No llega al 100% aunque lo descargue,es random
                 QApplication.restoreOverrideCursor()
                 
                 if self.dlg.checkBox_load_layers.isChecked():
                     try:
                         ## Descomprime los zips
-                        self.msgBar.pushMessage("Start loading GML files..." , level=QgsMessageBar.INFO)
+                        self.msgBar.pushMessage("Start loading GML files..." , level=QgsMessageBar.INFO, duration=3)
 
                         for zipfilecatastro in os.listdir(wd):
                             if zipfilecatastro.endswith('.zip'):
@@ -365,17 +407,19 @@ class Spanish_Inspire_Catastral_Downloader:
                                 layer = self.iface.addVectorLayer(os.path.join(wd , gmlfile) , "" ,
                                                              "ogr")
                                 
-                        self.msgBar.pushMessage("fichero descomprimido correctamente." , level=QgsMessageBar.INFO)
+                        self.msgBar.pushMessage("fichero descomprimido correctamente." , level=QgsMessageBar.INFO, duration=3)
                         
                     except:
-                        self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=QgsMessageBar.WARNING)
+                        self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=QgsMessageBar.WARNING, duration=3)
                         QApplication.restoreOverrideCursor()
                         
                 QApplication.restoreOverrideCursor()
                 
             except Exception as e:
-                self.msgBar.pushMessage("Failed! "+str(e) , level=QgsMessageBar.WARNING)
                 QApplication.restoreOverrideCursor()
+                self.msgBar.pushMessage("Failed! "+ str(e) , level=QgsMessageBar.WARNING, duration=3)
+                return
+                
 
     def run(self):
         """Run method that performs all the real work"""
@@ -400,5 +444,4 @@ class Spanish_Inspire_Catastral_Downloader:
         result = self.dlg.exec_()
 
         # See if OK was pressed
-        if result:
-            pass
+        if result:pass
