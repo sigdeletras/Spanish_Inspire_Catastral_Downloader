@@ -8,7 +8,7 @@ Para más información puede consultarse la entrada en [SIGdeletras.com](http://
 
 ## Instalar plugin
 
-**Disponible para QGIS 2 y QGIS 3**
+**Disponible para QGIS 2. Testeado en la rama 2.99 y compatible con QGIS 3**
 
 El complemento puede ser instalado desde el menú <b>Complementos>Administrar e instalar complementos</b> de QGIS. Para localizar de forma rápida el complemento puede introducirse el término <i>"catastro"</i> en la herramienta de búsqueda.
 
