@@ -62,9 +62,9 @@ El PDF con la descripción completa de la estructura de datos puede consultarse 
 - Posibilidad de applicar simbología a las capas
 
 ## Changelog
-
-- 28.07.2016 V0.4: Cambios para QGIS3
-- 28.07.2016 V0.3.1: Errores en nombres de municipios con punto.
-- 21.07.2016 V0.3: Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)
-- 21.07.2016 V0.2: Se añaden las "gerencias" de Gijón, Jerez, Vigo, Ceuta y Melilla (por Francisco Pérez Sampayo)
-- 19.07.2016 V0.1: Primera versión
+- 09.09.2017 V0.5: Barra de progreso. Mejora en la interfaz e iconos. Descarga bajo un proxy. Codificación. (PR de [Francisco Raga](https://github.com/All4Gis).
+- 28.08.2017 V0.4: Cambios para QGIS3
+- 28.08.2017 V0.3.1: Errores en nombres de municipios con punto.
+- 21.07.2017 V0.3: Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)
+- 21.07.2017 V0.2: Se añaden las "gerencias" de Gijón, Jerez, Vigo, Ceuta y Melilla (por Francisco Pérez Sampayo)
+- 19.07.2017 V0.1: Primera versión
