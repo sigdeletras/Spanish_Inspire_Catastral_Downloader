@@ -1,4 +1,4 @@
-# Spanish Inspire Catastral Downloader (V0.4) <img src="icon.png" height="42" width="42">
+# Spanish Inspire Catastral Downloader (V0.5) <img src="icon.png" height="42" width="42">
 
 Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y direcciones de España. La descarga usa el servicio ATOM según la Directiva Inspire. (<a href='http://www.catastro.minhap.gob.es/webinspire/index.html'>http://www.catastro.minhap.gob.es/webinspire/index.html</a>)
 
