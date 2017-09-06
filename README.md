@@ -59,10 +59,7 @@ El PDF con la descripción completa de la estructura de datos puede consultarse 
 
 ## 2DO
 
-- Añadir barra de proceso que avise de la descarga.
 - Posibilidad de applicar simbología a las capas
-- Preparlo para QGIS3
-- Ordenar el listado de municipios por código
 
 ## Changelog
 

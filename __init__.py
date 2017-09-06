@@ -21,8 +21,14 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
-
-
+# For Debug
+try:
+    import sys
+    sys.path.append("D:\eclipse\plugins\org.python.pydev_5.7.0.201704111357/pysrc")
+except:
+    None
+    
+from .resources import *
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Load Spanish_Inspire_Catastral_Downloader class from file Spanish_Inspire_Catastral_Downloader.

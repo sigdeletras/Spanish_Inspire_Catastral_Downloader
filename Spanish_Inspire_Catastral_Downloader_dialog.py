@@ -43,6 +43,7 @@ except:
 import os.path
 from qgis.core import *
 from qgis.gui import *
+from .resources import *
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
