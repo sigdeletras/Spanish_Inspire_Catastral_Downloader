@@ -26,6 +26,9 @@ import zipfile
 import urllib
 from urllib import request, parse
 
+import subprocess
+import json
+
 #TimeOut para la descarga de 5 segundos
 import socket
 
@@ -37,9 +40,8 @@ import shutil
 #from PyQt5.QtWidgets import QDialog
 #For Debug
 try:
-    import sys
     from pydevd import *
-except:
+except ImportError:
     None
  
 try:
@@ -51,12 +53,13 @@ try:
     QT_VERSION=5
     os.environ['QT_API'] = 'pyqt5'
 except:
+    from qgis.core import QGis as Qgis
     from PyQt4.QtCore import *
     from PyQt4.QtGui import *
     from PyQt4 import uic
     from qgis.core import QgsMapLayerRegistry
     QT_VERSION=4
-    
+
 import os.path
 from qgis.core import *
 
@@ -66,7 +69,6 @@ from .resources import *
 from .Spanish_Inspire_Catastral_Downloader_dialog import Spanish_Inspire_Catastral_DownloaderDialog
 from .listamuni import *
 from qgis.core import QgsProject
-from qgis.gui import QgsMessageBar
 
 
 listProvincias = LISTPROV
@@ -74,7 +76,7 @@ listMunicipios = LISTMUNI
 
 codprov = ''
 codmuni = ''
- 
+
 from .Config import _proxy
 from .Config import _port
 
@@ -115,7 +117,7 @@ class Spanish_Inspire_Catastral_Downloader:
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'Spanish_Inspire_Catastral_Downloader')
         self.toolbar.setObjectName(u'Spanish_Inspire_Catastral_Downloader')
-        
+
         socket.setdefaulttimeout(5)
 
     # noinspection PyMethodMayBeStatic
@@ -185,8 +187,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
         # Create the dialog (after translation) and keep reference
         self.dlg = Spanish_Inspire_Catastral_DownloaderDialog()
-        self.dlg.setWindowFlags(Qt.WindowSystemMenuHint | Qt.WindowTitleHint) 
-        
+        # self.dlg.setWindowFlags(Qt.WindowSystemMenuHint | Qt.WindowTitleHint) 
 
         icon = QIcon(icon_path)
         action = QAction(icon , text , parent)
@@ -244,7 +245,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
     def not_data(self):
         """Message for fields without information"""
-        self.msgBar.pushMessage('Completar datos de municipio o indicar la ruta de descarga' , level=QgsMessageBar.INFO, duration=3)
+        self.msgBar.pushMessage('Completar datos de municipio o indicar la ruta de descarga' , level=Qgis.Info, duration=3)
 
     def filter_municipality(self , index):
         """Message for fields without information"""
@@ -265,8 +266,8 @@ class Spanish_Inspire_Catastral_Downloader:
         if totalsize > 0:
             percent = readsofar * 1e2 / totalsize
             self.dlg.progressBar.setValue(int(percent))
-    
-    #Ser Proxy
+
+    #Set Proxy
     def set_proxy(self):
         proxy_handler = request.ProxyHandler({
             'http': '%s:%s' % (_proxy,_port),
@@ -275,14 +276,14 @@ class Spanish_Inspire_Catastral_Downloader:
         opener = request.build_opener(proxy_handler)
         request.install_opener(opener)
         return
- 
+
     #Unset Proxy
     def unset_proxy(self):
         proxy_handler = request.ProxyHandler({})
         opener = request.build_opener(proxy_handler)
         request.install_opener(opener)
         return
-    
+
     #Encode URL Download
     def EncodeUrl(self,url):
         url = parse.urlsplit(url)
@@ -290,7 +291,7 @@ class Spanish_Inspire_Catastral_Downloader:
         url[2] = parse.quote(url[2])
         encoded_link = parse.urlunsplit(url)
         return encoded_link
-    
+
     def download(self):
         """Dowload data funtion"""
 
@@ -300,15 +301,14 @@ class Spanish_Inspire_Catastral_Downloader:
         else:
 
             try:
-                
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 inecode_catastro = self.dlg.comboBox_municipality.currentText()
                 codprov = inecode_catastro[0:2]
                 codmuni = inecode_catastro[0:5]
                 zippath = self.dlg.lineEdit_path.text()
-    
+
                 wd = os.path.join(zippath , inecode_catastro)
-                
+
                 proxy_support = urllib.request.ProxyHandler({})
                 opener = urllib.request.build_opener(proxy_support)
                 urllib.request.install_opener(opener)
@@ -321,105 +321,129 @@ class Spanish_Inspire_Catastral_Downloader:
                         self.unset_proxy()
                 except Exception as e:
                     QApplication.restoreOverrideCursor()
-                    self.msgBar.pushMessage("Error estableciendo el proxy : "+ str(e) , level=QgsMessageBar.WARNING, duration=3)
+                    self.msgBar.pushMessage("Error estableciendo el proxy : "+ str(e) , level=Qgis.Warning, duration=3)
                     raise
-    
+
                 # download de Cadastral Parcels
                 if self.dlg.checkBox_parcels.isChecked():
-    
+
                     url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (
                         codprov , inecode_catastro , codmuni)
-    
+
                     try:
                         os.makedirs(wd)
                     except OSError:
                         pass
-    
+
                     zipParcels = os.path.join(wd , "%s_Parcels.zip" % inecode_catastro)  # poner fecha
-    
 
                     e_url=self.EncodeUrl(url)
                     try:
-                        urllib.request.urlretrieve(e_url , zipParcels, self.reporthook)
+                        urllib.request.urlretrieve(e_url, zipParcels, self.reporthook)
                     except:
                         shutil.rmtree(wd)
                         raise
-    
+
                 # download de Buildings
                 if self.dlg.checkBox_buildings.isChecked():
-    
+
                     url = u'http://www.catastro.minhap.es/INSPIRE/Buildings/%s/%s/A.ES.SDGC.BU.%s.zip' % (
                         codprov , inecode_catastro , codmuni)
-    
+
                     try:
                         os.makedirs(wd)
                     except OSError:
                         pass
-    
+
                     zipbuildings = os.path.join(wd , "%s_Buildings.zip" % inecode_catastro)  # poner fecha
-                    
+
                     e_url=self.EncodeUrl(url)
-                    
+
                     try:
                         urllib.request.urlretrieve(e_url , zipbuildings, self.reporthook)
                     except:
                         shutil.rmtree(wd)
                         raise
-    
+
                 # download de Addresses
                 if self.dlg.checkBox_addresses.isChecked():
-    
+
                     url = u'http://www.catastro.minhap.es/INSPIRE/Addresses/%s/%s/A.ES.SDGC.AD.%s.zip' % (
                         codprov , inecode_catastro , codmuni)
-    
+
                     try:
                         os.makedirs(wd)
                     except OSError:
                         pass
-    
+
                     zipAddresses = os.path.join(wd , "%s_Addresses.zip" % inecode_catastro)  # poner fecha
-                    
+
                     e_url=self.EncodeUrl(url)
-                    
+
                     try:
                         urllib.request.urlretrieve(e_url , zipAddresses, self.reporthook)
                     except:
                         shutil.rmtree(wd)
                         raise
-    
-                self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS, duration=3)
+
+                self.msgBar.pushMessage("Finished!" , level=Qgis.Success, duration=3)
                 self.dlg.progressBar.setValue(100)#No llega al 100% aunque lo descargue,es random
                 QApplication.restoreOverrideCursor()
-                
-                if self.dlg.checkBox_load_layers.isChecked():
+
+                ## Descomprime los zips
+                if os.path.isdir(wd):
+                    for zipfilecatastro in os.listdir(wd):
+                        if zipfilecatastro.endswith('.zip'):
+                            with zipfile.ZipFile(os.path.join(wd , zipfilecatastro) , "r") as z:
+                                z.extractall(wd)
+
+                    #Convert gml2geojson
+                    for gmlfile in os.listdir(wd):
+                        if gmlfile.endswith('.gml'):
+                            input = os.path.join(wd, gmlfile)
+                            output, ext = os.path.splitext(input)
+                            output = output + '.geojson'
+                            self.gml2geojson(input, output)
+                else:
+                    self.msgBar.pushMessage("Seleccione al menos un dataset para descargar." , level=Qgis.Info)
+                    return
+
+                if self.dlg.checkBox_load_layers.isChecked() and os.path.isdir(wd):
                     try:
                         ## Descomprime los zips
-                        self.msgBar.pushMessage("Start loading GML files..." , level=QgsMessageBar.INFO, duration=3)
-
-                        for zipfilecatastro in os.listdir(wd):
-                            if zipfilecatastro.endswith('.zip'):
-                                with zipfile.ZipFile(os.path.join(wd , zipfilecatastro) , "r") as z:
-                                    z.extractall(wd)
-            
-                        ## Carga los GMLs
+                        self.msgBar.pushMessage("Start loading GeoJSON files..." , level=Qgis.Info, duration=3)            
+                        ## Carga los GeoJSON
                         for gmlfile in os.listdir(wd):
-                            if gmlfile.endswith('.gml'):
+                            if gmlfile.endswith('.geojson'):
                                 layer = self.iface.addVectorLayer(os.path.join(wd , gmlfile) , "" ,
                                                              "ogr")
-                                
-                        self.msgBar.pushMessage("fichero descomprimido correctamente." , level=QgsMessageBar.INFO, duration=3)
-                        
+
+                        self.msgBar.pushMessage("fichero descomprimido correctamente." , level=Qgis.Info, duration=3)
+
                     except:
-                        self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=QgsMessageBar.WARNING, duration=3)
+                        self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=Qgis.Warning , duration=3)
                         QApplication.restoreOverrideCursor()
-                        
+
                 QApplication.restoreOverrideCursor()
-                
+
             except Exception as e:
                 QApplication.restoreOverrideCursor()
-                self.msgBar.pushMessage("Failed! "+ str(e) , level=QgsMessageBar.WARNING, duration=3)
+                self.msgBar.pushMessage("Failed! "+ str(e) , level=Qgis.Warning , duration=3)
                 return
-                
+
+    def gml2geojson(self, input, output):
+        """ Convert a GML to a GeoJSON file """
+        try:
+            connect_command = """ogr2ogr -f GeoJSON {} {}""".format(output, input)
+            print ("\n Executing: ", connect_command)
+            process = subprocess.Popen(connect_command, shell=True)
+            process.communicate()
+            process.wait()
+            print ("GML", input, "converted to", output + ".geojson")
+        except Exception as err:
+            print ("Failed to convert to GeoJSON from GML")
+            raise
+        return
 
     def run(self):
         """Run method that performs all the real work"""

@@ -39,7 +39,7 @@ except:
     from PyQt4.QtGui import *
     from PyQt4 import uic
     QT_VERSION=4
-    
+
 import os.path
 from qgis.core import *
 from qgis.gui import *
