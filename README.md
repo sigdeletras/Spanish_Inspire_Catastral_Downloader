@@ -1,4 +1,4 @@
-# Spanish Inspire Catastral Downloader (V0.6) <img src="icon.png" height="42" width="42">
+# Spanish Inspire Catastral Downloader (V1.0) <img src="icon.png" height="42" width="42">
 
 
 Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y direcciones de España. La descarga usa el servicio ATOM según la Directiva Inspire. (<a href='http://www.catastro.minhap.gob.es/webinspire/index.html'>http://www.catastro.minhap.gob.es/webinspire/index.html</a>)
@@ -9,7 +9,7 @@ Para más información puede consultarse la entrada en [SIGdeletras.com](http://
 
 ## Instalar plugin
 
-**Disponible para QGIS 2. Testeado en la rama 2.99**
+**Disponible para QGIS 2.18.* y 3.0.***
 
 El complemento puede ser instalado desde el menú <b>Complementos>Administrar e instalar complementos</b> de QGIS. Para localizar de forma rápida el complemento puede introducirse el término <i>"catastro"</i> en la herramienta de búsqueda.
 
@@ -63,6 +63,7 @@ El PDF con la descripción completa de la estructura de datos puede consultarse 
 - Posibilidad de applicar simbología a las capas
 
 ## Changelog
+- 17.06.2018 V1.0: PR de Fran Raga: Arregla errores de la API para QgsMessageBar. Para salvar el error de carga de GML en QGIS3, son convertidos a geojson. Sobre el PR de Fran: Añadido try/except para que pueda ser usado por QGIS 2.* Se añade el EPSG:25830 de salida para la conversión de los geojson.
 - 11.06.2018 V0.6: Errores en nombres de municipios con cedilla (issue de [Carlos Cámara](https://github.com/ccamara) . Bajada de versión hasta 2.99 por fallo de carga del GML en QGIS 3 y error en la API.
 - 09.09.2017 V0.5: Barra de progreso. Mejora en la interfaz e iconos. Descarga bajo un proxy. Codificación. (PR de [Francisco Raga](https://github.com/All4Gis).
 - 28.08.2017 V0.4: Cambios para QGIS3
