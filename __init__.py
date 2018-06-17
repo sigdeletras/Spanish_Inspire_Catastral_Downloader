@@ -22,10 +22,11 @@
  This script initializes the plugin, making it known to QGIS.
 """
 # For Debug
+import sys
 try:
-    import sys
-    sys.path.append("D:\eclipse\plugins\org.python.pydev_5.7.0.201704111357/pysrc")
-except:
+    sys.path.append(
+        "D:\eclipse\plugins\org.python.pydev_6.2.0.201711281614\pysrc")
+except ImportError:
     None
     
 from .resources import *
