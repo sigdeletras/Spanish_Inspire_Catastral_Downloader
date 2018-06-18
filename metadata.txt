@@ -8,7 +8,7 @@
 
 [general]
 name=Spanish Inspire Catastral Downloader
-qgisMinimumVersion=2.14
+qgisMinimumVersion=2.16
 qgisMaximumVersion=3.99
 description=Descarga de cartografía catastral según Inspire
 version=1.0
