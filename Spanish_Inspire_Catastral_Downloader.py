@@ -296,6 +296,24 @@ class Spanish_Inspire_Catastral_Downloader:
 		encoded_link = parse.urlunsplit(url)
 		return encoded_link
 
+	def formatFolderName(self,foldername):
+		foldernameformat = foldername.replace(' ', "_")
+		return foldernameformat
+
+	def gml2geojson(self, input, output):
+		""" Convert a GML to a GeoJSON file """
+		try:
+			connect_command = """ogr2ogr -f GeoJSON {} {} -a_srs EPSG:25830""".format(output, input)
+			print ("\n Executing: ", connect_command)
+			process = subprocess.Popen(connect_command, shell=True)
+			process.communicate()
+			process.wait()
+			print ("GML", input, "converted to", output + ".geojson")
+		except Exception as err:
+			print ("Failed to convert to GeoJSON from GML")
+			raise
+		return
+
 	def download(self):
 		"""Dowload data funtion"""
 
@@ -309,9 +327,12 @@ class Spanish_Inspire_Catastral_Downloader:
 				inecode_catastro = self.dlg.comboBox_municipality.currentText()
 				codprov = inecode_catastro[0:2]
 				codmuni = inecode_catastro[0:5]
+
 				zippath = self.dlg.lineEdit_path.text()
 
-				wd = os.path.join(zippath , inecode_catastro)
+				# wd = os.path.join(zippath , inecode_catastro.replace(' ', "_"))
+				wd = os.path.join(zippath , codmuni)
+				
 
 				proxy_support = urllib.request.ProxyHandler({})
 				opener = urllib.request.build_opener(proxy_support)
@@ -398,8 +419,7 @@ class Spanish_Inspire_Catastral_Downloader:
 				except:
 					self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS, duration=3)
 
-				self.dlg.progressBar.setValue(100)#No llega al 100% aunque lo descargue,es random
-				QApplication.restoreOverrideCursor()
+
 
 				## Descomprime los zips
 				if os.path.isdir(wd):
@@ -409,9 +429,9 @@ class Spanish_Inspire_Catastral_Downloader:
 								z.extractall(wd)
 
 					#Convert gml2geojson
-					for gmlfile in os.listdir(wd):
-						if gmlfile.endswith('.gml'):
-							input = os.path.join(wd, gmlfile)
+					for geojsonfile in os.listdir(wd):
+						if geojsonfile.endswith('.gml'):
+							input = os.path.join(wd, geojsonfile)
 							output, ext = os.path.splitext(input)
 							output = output + '.geojson'
 							self.gml2geojson(input, output)
@@ -426,17 +446,17 @@ class Spanish_Inspire_Catastral_Downloader:
 					try:
 						## Descomprime los zips
 						try:
-							self.msgBar.pushMessage("Start loading GeoJSON files..." , level=Qgis.Info, duration=3)
+							self.msgBar.pushMessage(u"Convirtiendo GML a GeoJSON. Según el peso de los archivos esto puede llevarse su tiempo..." , level=Qgis.Info, duration=4)
 						except:
-							self.msgBar.pushMessage("Start loading GeoJSON files..." , level=QgsMessageBar.INFO, duration=3)	   
+							self.msgBar.pushMessage(u"Convirtiendo GML a GeoJSON. Según el peso de los archivos esto puede llevarse su tiempo..." , level=QgsMessageBar.INFO, duration=4)	   
 						## Carga los GeoJSON
-						for gmlfile in os.listdir(wd):
-							if gmlfile.endswith('.geojson'):
-								layer = self.iface.addVectorLayer(os.path.join(wd , gmlfile) , "" ,
+						for geojsonfile in os.listdir(wd):
+							if geojsonfile.endswith('.geojson'):
+								layer = self.iface.addVectorLayer(os.path.join(wd , geojsonfile) , "" ,
 															 "ogr")
 
 						try:
-							self.msgBar.pushMessage("Fichero descomprimido correctamente." , level=Qgis.Info, duration=3)
+							self.msgBar.pushMessage("Ficheros descomprimido correctamente." , level=Qgis.Info, duration=3)
 						except:
 							self.msgBar.pushMessage("Fichero descomprimido correctamente." , level=QgsMessageBar.INFO, duration=3)
 
@@ -446,6 +466,7 @@ class Spanish_Inspire_Catastral_Downloader:
 						except:
 							self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=QgsMessageBar.WARNING , duration=3)
 						QApplication.restoreOverrideCursor()
+				self.dlg.progressBar.setValue(100)#No llega al 100% aunque lo descargue,es random
 
 				QApplication.restoreOverrideCursor()
 
@@ -457,19 +478,7 @@ class Spanish_Inspire_Catastral_Downloader:
 					self.msgBar.pushMessage("Failed! "+ str(e) , level=QgsMessageBar.WARNING , duration=3)
 				return
 
-	def gml2geojson(self, input, output):
-		""" Convert a GML to a GeoJSON file """
-		try:
-			connect_command = """ogr2ogr -f GeoJSON {} {} -a_srs EPSG:25830""".format(output, input)
-			print ("\n Executing: ", connect_command)
-			process = subprocess.Popen(connect_command, shell=True)
-			process.communicate()
-			process.wait()
-			print ("GML", input, "converted to", output + ".geojson")
-		except Exception as err:
-			print ("Failed to convert to GeoJSON from GML")
-			raise
-		return
+
 
 	def run(self):
 		"""Run method that performs all the real work"""
