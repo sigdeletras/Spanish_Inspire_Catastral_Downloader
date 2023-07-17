@@ -21,22 +21,23 @@
  *																		 *
  ***************************************************************************/
 """
-import urllib.request
-import zipfile
-import urllib
-from urllib import request, parse
-
-import subprocess
 import json
-
-#TimeOut para la descarga de 5 segundos
-import socket
-
-# Import the PyQt and QGIS libraries
-from qgis.PyQt.QtCore import Qt
 #from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 import shutil
+#TimeOut para la descarga de 5 segundos
+import socket
+import subprocess
+import urllib
+import urllib.request
+from urllib.parse import parse_qs, urlparse
+import xml.etree.ElementTree as ET
+import zipfile
+from urllib import parse, request
+
+# Import the PyQt and QGIS libraries
+from qgis.PyQt.QtCore import Qt
+
 #from PyQt5.QtWidgets import QDialog
 #For Debug
 try:
@@ -45,41 +46,37 @@ except ImportError:
 	None
  
 try:
-	from qgis.core import Qgis
+	from PyQt5 import QtNetwork, uic
 	from PyQt5.QtCore import *
 	from PyQt5.QtGui import *
 	from PyQt5.QtWidgets import *
-	from PyQt5 import uic
+	from qgis.core import Qgis
 	QT_VERSION=5
 	os.environ['QT_API'] = 'pyqt5'
 except:
-	from qgis.core import QGis as Qgis
+	from PyQt4 import QNetwork, uic
 	from PyQt4.QtCore import *
 	from PyQt4.QtGui import *
-	from PyQt4 import uic
+	from qgis.core import QGis as Qgis
 	from qgis.core import QgsMapLayerRegistry
 	from qgis.gui import QgsMessageBar
 	QT_VERSION=4
 
 import os.path
+
 from qgis.core import *
 
+from .listamuni import *
 #import resources
 from .resources import *
-
-from .Spanish_Inspire_Catastral_Downloader_dialog import Spanish_Inspire_Catastral_DownloaderDialog
-from .listamuni import *
-from qgis.core import QgsProject
-
-
-listProvincias = LISTPROV
-listMunicipios = LISTMUNI
+from .Spanish_Inspire_Catastral_Downloader_dialog import \
+    Spanish_Inspire_Catastral_DownloaderDialog
 
 codprov = ''
 codmuni = ''
 
-from .Config import _proxy
-from .Config import _port
+from .Config import _port, _proxy
+
 
 class Spanish_Inspire_Catastral_Downloader:
 	"""QGIS Plugin Implementation."""
@@ -251,19 +248,6 @@ class Spanish_Inspire_Catastral_Downloader:
 		except:
 			self.msgBar.pushMessage('Completar datos de municipio o indicar la ruta de descarga' , level=QgsMessageBar.INFO, duration=3)
 
-	def filter_municipality(self , index):
-		"""Message for fields without information"""
-
-		filtroprovincia = self.dlg.comboBox_province.currentText()
-		self.dlg.comboBox_municipality.clear()
-
-		self.dlg.comboBox_municipality.addItems([muni for muni in listMunicipios if muni[0:2] == filtroprovincia[0:2]])
-
-		inecode_catastro = self.dlg.comboBox_municipality.currentText()
-
-		codprov = inecode_catastro[0:2]
-		codmuni = inecode_catastro[0:5]
-
 	#Progress Download
 	def reporthook(self,blocknum, blocksize, totalsize):
 		readsofar = blocknum * blocksize
@@ -325,8 +309,6 @@ class Spanish_Inspire_Catastral_Downloader:
 			try:
 				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 				inecode_catastro = self.dlg.comboBox_municipality.currentText()
-				codprov = inecode_catastro[0:2]
-				codmuni = inecode_catastro[0:5]
 
 				zippath = self.dlg.lineEdit_path.text()
 
@@ -352,123 +334,26 @@ class Spanish_Inspire_Catastral_Downloader:
 						self.msgBar.pushMessage("Error estableciendo el proxy : "+ str(e) , level=QgsMessageBar.WARNING, duration=3)
 					raise
 
+
+				self.manager_ATOM = QtNetwork.QNetworkAccessManager()
+				self.manager_ATOM.finished.connect(self.genera_url_descarga)
 				# download de Cadastral Parcels
 				if self.dlg.checkBox_parcels.isChecked():
-
-					url = u'http://www.catastro.minhap.es/INSPIRE/CadastralParcels/%s/%s/A.ES.SDGC.CP.%s.zip' % (
-						codprov , inecode_catastro , codmuni)
-
-					try:
-						os.makedirs(wd)
-					except OSError:
-						pass
-
-					zipParcels = os.path.join(wd , "%s_Parcels.zip" % inecode_catastro)  # poner fecha
-
-					e_url=self.EncodeUrl(url)
-					try:
-						urllib.request.urlretrieve(e_url, zipParcels, self.reporthook)
-					except:
-						shutil.rmtree(wd)
-						raise
+					self.busca_url(inecode_catastro, 'CadastralParcels','CP', wd)
 
 				# download de Buildings
 				if self.dlg.checkBox_buildings.isChecked():
-
-					url = u'http://www.catastro.minhap.es/INSPIRE/Buildings/%s/%s/A.ES.SDGC.BU.%s.zip' % (
-						codprov , inecode_catastro , codmuni)
-
-					try:
-						os.makedirs(wd)
-					except OSError:
-						pass
-
-					zipbuildings = os.path.join(wd , "%s_Buildings.zip" % inecode_catastro)  # poner fecha
-
-					e_url=self.EncodeUrl(url)
-
-					try:
-						urllib.request.urlretrieve(e_url , zipbuildings, self.reporthook)
-					except:
-						shutil.rmtree(wd)
-						raise
+					self.busca_url(inecode_catastro, 'Buildings', 'BU', wd)
+					
 
 				# download de Addresses
 				if self.dlg.checkBox_addresses.isChecked():
-
-					url = u'http://www.catastro.minhap.es/INSPIRE/Addresses/%s/%s/A.ES.SDGC.AD.%s.zip' % (
-						codprov , inecode_catastro , codmuni)
-
-					try:
-						os.makedirs(wd)
-					except OSError:
-						pass
-
-					zipAddresses = os.path.join(wd , "%s_Addresses.zip" % inecode_catastro)  # poner fecha
-
-					e_url=self.EncodeUrl(url)
-
-					try:
-						urllib.request.urlretrieve(e_url , zipAddresses, self.reporthook)
-					except:
-						shutil.rmtree(wd)
-						raise
+					self.busca_url(inecode_catastro, 'Addresses', 'AD', wd)
 
 				try:
 					self.msgBar.pushMessage("Finished!" , level=Qgis.Success, duration=3)
 				except:
 					self.msgBar.pushMessage("Finished!" , level=QgsMessageBar.SUCCESS, duration=3)
-
-
-
-				## Descomprime los zips
-				if os.path.isdir(wd):
-					for zipfilecatastro in os.listdir(wd):
-						if zipfilecatastro.endswith('.zip'):
-							with zipfile.ZipFile(os.path.join(wd , zipfilecatastro) , "r") as z:
-								z.extractall(wd)
-
-					#Convert gml2geojson
-					for geojsonfile in os.listdir(wd):
-						if geojsonfile.endswith('.gml'):
-							input = os.path.join(wd, geojsonfile)
-							output, ext = os.path.splitext(input)
-							output = output + '.geojson'
-							self.gml2geojson(input, output)
-				else:
-					try:
-						self.msgBar.pushMessage("Seleccione al menos un dataset para descargar." , level=Qgis.Info)
-					except:
-						self.msgBar.pushMessage("Seleccione al menos un dataset para descargar." , level=QgsMessageBar.INFO)
-					return
-
-				if self.dlg.checkBox_load_layers.isChecked() and os.path.isdir(wd):
-					try:
-						## Descomprime los zips
-						try:
-							self.msgBar.pushMessage(u"Convirtiendo GML a GeoJSON. Según el peso de los archivos esto puede llevarse su tiempo..." , level=Qgis.Info, duration=4)
-						except:
-							self.msgBar.pushMessage(u"Convirtiendo GML a GeoJSON. Según el peso de los archivos esto puede llevarse su tiempo..." , level=QgsMessageBar.INFO, duration=4)	   
-						## Carga los GeoJSON
-						for geojsonfile in os.listdir(wd):
-							if geojsonfile.endswith('.geojson'):
-								layer = self.iface.addVectorLayer(os.path.join(wd , geojsonfile) , "" ,
-															 "ogr")
-
-						try:
-							self.msgBar.pushMessage("Ficheros descomprimido correctamente." , level=Qgis.Info, duration=3)
-						except:
-							self.msgBar.pushMessage("Fichero descomprimido correctamente." , level=QgsMessageBar.INFO, duration=3)
-
-					except:
-						try:
-							self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=Qgis.Warning , duration=3)
-						except:
-							self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=QgsMessageBar.WARNING , duration=3)
-						QApplication.restoreOverrideCursor()
-				self.dlg.progressBar.setValue(100)#No llega al 100% aunque lo descargue,es random
-
-				QApplication.restoreOverrideCursor()
 
 			except Exception as e:
 				QApplication.restoreOverrideCursor()
@@ -478,6 +363,104 @@ class Spanish_Inspire_Catastral_Downloader:
 					self.msgBar.pushMessage("Failed! "+ str(e) , level=QgsMessageBar.WARNING , duration=3)
 				return
 
+	def busca_url(self, inecode_catastro, tipo, codtipo, wd):	
+		inecode_catastro = inecode_catastro.split(' - ')[0]
+		codprov = inecode_catastro[0:2]
+
+		ATOM = 'https://www.catastro.minhap.es/INSPIRE/{}/{}/ES.SDGC.{}.atom_{}.xml?tipo={}&wd={}'.format(tipo, codprov, codtipo, codprov, tipo, wd)
+		req = QtNetwork.QNetworkRequest(QUrl(ATOM))
+		self.manager_ATOM.get(req)
+
+
+	def genera_url_descarga(self, reply):
+		inecode_catastro = self.dlg.comboBox_municipality.currentText().split(' - ')[0]
+		er = reply.error()
+		if er == QtNetwork.QNetworkReply.NetworkError.NoError:
+			bytes_string = reply.readAll()
+			response = str(bytes_string, 'iso-8859-1')
+			root = ET.fromstring(response)
+			for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
+				url = entry.find('{http://www.w3.org/2005/Atom}id').text
+				if url.endswith('{}.zip'.format(inecode_catastro)):
+					if url is not None:
+						params = parse_qs(urlparse(reply.request().url().toString()).query)
+						tipo = params['tipo'][0]
+						wd = params['wd'][0]
+						self.crea_fichero_descarga(inecode_catastro, tipo, url, wd)
+					else:
+						try:
+							self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=Qgis.Info, duration=3)
+						except:
+							self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=QgsMessageBar.INFO, duration=3)
+
+
+	def crea_fichero_descarga(self, inecode_catastro, tipo, url, wd):
+		print(wd)
+		try:
+			os.makedirs(wd)
+		except OSError:
+			pass
+
+		zip = os.path.join(wd , "{}_{}.zip".format(inecode_catastro, tipo))  # poner fecha
+
+		e_url=self.EncodeUrl(url)
+
+		try:
+			urllib.request.urlretrieve(e_url , zip, self.reporthook)
+			self.descomprime_ficheros(wd)
+		except:
+			shutil.rmtree(wd)
+			raise
+
+	def descomprime_ficheros(self, wd):
+		## Descomprime los zips
+		if os.path.isdir(wd):
+			for zipfilecatastro in os.listdir(wd):
+				if zipfilecatastro.endswith('.zip'):
+					with zipfile.ZipFile(os.path.join(wd , zipfilecatastro) , "r") as z:
+						z.extractall(wd)
+
+			#Convert gml2geojson
+			for geojsonfile in os.listdir(wd):
+				if geojsonfile.endswith('.gml'):
+					input = os.path.join(wd, geojsonfile)
+					output, ext = os.path.splitext(input)
+					output = output + '.geojson'
+					self.gml2geojson(input, output)
+		else:
+			try:
+				self.msgBar.pushMessage("Seleccione al menos un dataset para descargar." , level=Qgis.Info)
+			except:
+				self.msgBar.pushMessage("Seleccione al menos un dataset para descargar." , level=QgsMessageBar.INFO)
+			return
+
+		if self.dlg.checkBox_load_layers.isChecked() and os.path.isdir(wd):
+			try:
+				## Descomprime los zips
+				try:
+					self.msgBar.pushMessage(u"Convirtiendo GML a GeoJSON. Según el peso de los archivos esto puede llevarse su tiempo..." , level=Qgis.Info, duration=4)
+				except:
+					self.msgBar.pushMessage(u"Convirtiendo GML a GeoJSON. Según el peso de los archivos esto puede llevarse su tiempo..." , level=QgsMessageBar.INFO, duration=4)	   
+				## Carga los GeoJSON
+				for geojsonfile in os.listdir(wd):
+					if geojsonfile.endswith('.geojson'):
+						layer = self.iface.addVectorLayer(os.path.join(wd , geojsonfile) , "" ,
+														"ogr")
+
+				try:
+					self.msgBar.pushMessage("Ficheros descomprimido correctamente." , level=Qgis.Info, duration=3)
+				except:
+					self.msgBar.pushMessage("Fichero descomprimido correctamente." , level=QgsMessageBar.INFO, duration=3)
+
+			except:
+				try:
+					self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=Qgis.Warning , duration=3)
+				except:
+					self.msgBar.pushMessage("Error descomprimiendo el fichero." , level=QgsMessageBar.WARNING , duration=3)
+				QApplication.restoreOverrideCursor()
+		self.dlg.progressBar.setValue(100)#No llega al 100% aunque lo descargue,es random
+
+		QApplication.restoreOverrideCursor()
 
 
 	def run(self):
@@ -487,8 +470,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
 		self.dlg.comboBox_province.clear()
 		self.dlg.comboBox_municipality.clear()
-		self.dlg.comboBox_province.addItems(listProvincias)
-		self.dlg.comboBox_province.currentIndexChanged.connect(self.filter_municipality)
+		self.obtener_provincias()
 
 		self.dlg.checkBox_parcels.setChecked(0)
 		self.dlg.checkBox_buildings.setChecked(0)
@@ -504,3 +486,60 @@ class Spanish_Inspire_Catastral_Downloader:
 
 		# See if OK was pressed
 		if result:pass
+
+
+	def obtener_provincias(self):
+		self.manager_provincias = QtNetwork.QNetworkAccessManager()
+		self.manager_provincias.finished.connect(self.rellenar_provincias)
+		
+		url = 'http://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/ObtenerProvincias'
+		req = QtNetwork.QNetworkRequest(QUrl(url))
+		self.manager_provincias.get(req)
+	
+
+	def rellenar_provincias(self, reply):
+		er = reply.error()
+		if er == QtNetwork.QNetworkReply.NetworkError.NoError:
+			bytes_string = reply.readAll()
+			response = str(bytes_string, 'utf-8')
+			response_json = json.loads(response)
+			provincias = response_json['consulta_provincieroResult']['provinciero']['prov']
+
+			listProvincias = ['Seleccione una provincia...']
+			for provincia in provincias:
+				listProvincias.append('{} - {}'.format(provincia['cpine'], provincia['np']) )
+
+			self.dlg.comboBox_province.addItems(listProvincias)
+			self.dlg.comboBox_province.currentIndexChanged.connect(self.obtener_municipos)
+
+	def obtener_municipos(self):
+		try:
+			self.manager_municipios = QtNetwork.QNetworkAccessManager()
+			self.manager_municipios.finished.connect(self.rellenar_municipios)
+			provincia = self.dlg.comboBox_province.currentText()
+			provincia = provincia.split(' - ')[0]
+			url = 'http://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejeroCodigos.svc/json/ObtenerMunicipiosCodigos?CodigoProvincia=' + str(provincia)
+			req = QtNetwork.QNetworkRequest(QUrl(url))
+			self.manager_municipios.get(req)
+		except Exception as e: 
+			print(e)
+
+	def rellenar_municipios(self, reply):
+		er = reply.error()
+		if er == QtNetwork.QNetworkReply.NetworkError.NoError:
+			bytes_string = reply.readAll()
+			response = str(bytes_string, 'utf-8')
+			response_json = json.loads(response)
+			listMunicipios = []
+			try:
+				municipios = response_json['consulta_municipieroResult']['municipiero']['muni']
+				for municipio in municipios:
+					codigo_provincia = str(municipio['locat']['cd']).zfill(2)
+					codigo_municipio = str(municipio['locat']['cmc']).zfill(3)
+					codigo = codigo_provincia + codigo_municipio
+					listMunicipios.append(codigo + ' - ' + municipio['nm'])
+			except:
+				pass
+
+			self.dlg.comboBox_municipality.clear()
+			self.dlg.comboBox_municipality.addItems(listMunicipios)
