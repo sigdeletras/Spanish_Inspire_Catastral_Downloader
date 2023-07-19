@@ -380,37 +380,49 @@ class Spanish_Inspire_Catastral_Downloader:
 			response = str(bytes_string, 'iso-8859-1')
 			root = ET.fromstring(response)
 			for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
-				url = entry.find('{http://www.w3.org/2005/Atom}id').text
-				if url.endswith('{}.zip'.format(inecode_catastro)):
-					if url is not None:
+				try:
+					url = entry.find('{http://www.w3.org/2005/Atom}id').text
+				except:
+					try:
+						self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=Qgis.Info, duration=3)
+					except:
+						self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=QgsMessageBar.INFO, duration=3)
+
+				if url is not None and url.endswith('{}.zip'.format(inecode_catastro)):
 						params = parse_qs(urlparse(reply.request().url().toString()).query)
 						tipo = params['tipo'][0]
 						wd = params['wd'][0]
 						self.crea_fichero_descarga(inecode_catastro, tipo, url, wd)
-					else:
-						try:
-							self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=Qgis.Info, duration=3)
-						except:
-							self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=QgsMessageBar.INFO, duration=3)
+						break
+				else:
+					try:
+						self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=Qgis.Info, duration=3)
+					except:
+						self.msgBar.pushMessage("No se ha encontrado el conjunto de datos." , level=QgsMessageBar.INFO, duration=3)
 
 
 	def crea_fichero_descarga(self, inecode_catastro, tipo, url, wd):
-		print(wd)
 		try:
 			os.makedirs(wd)
 		except OSError:
 			pass
 
 		zip = os.path.join(wd , "{}_{}.zip".format(inecode_catastro, tipo))  # poner fecha
+		
+		if not os.path.exists(zip):
+			e_url=self.EncodeUrl(url)
+			try:
+				urllib.request.urlretrieve(e_url , zip, self.reporthook)
+				self.descomprime_ficheros(wd)
+			except:
+				shutil.rmtree(wd)
+				raise
+		else:
+			try:
+				self.msgBar.pushMessage("El conjunto de datos ya existe en la carpeta de descarga." , level=Qgis.Info, duration=3)
+			except:
+				self.msgBar.pushMessage("El conjunto de datos ya existe en la carpeta de descarga." , level=QgsMessageBar.INFO, duration=3)
 
-		e_url=self.EncodeUrl(url)
-
-		try:
-			urllib.request.urlretrieve(e_url , zip, self.reporthook)
-			self.descomprime_ficheros(wd)
-		except:
-			shutil.rmtree(wd)
-			raise
 
 	def descomprime_ficheros(self, wd):
 		## Descomprime los zips
