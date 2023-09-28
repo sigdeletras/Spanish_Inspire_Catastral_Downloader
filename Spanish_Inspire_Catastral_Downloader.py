@@ -66,7 +66,7 @@ import os.path
 
 from qgis.core import *
 
-from .listamuni import *
+# from .listamuni import *
 #import resources
 from .resources import *
 from .Spanish_Inspire_Catastral_Downloader_dialog import \
@@ -404,6 +404,7 @@ class Spanish_Inspire_Catastral_Downloader:
 	def crea_fichero_descarga(self, inecode_catastro, tipo, url, wd):
 		try:
 			os.makedirs(wd)
+			print('Crea fichero', wd)
 		except OSError:
 			pass
 
