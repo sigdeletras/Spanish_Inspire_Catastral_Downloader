@@ -25,12 +25,12 @@ repository=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
 # Uncomment the following line and add your changelog:
 changelog=
 	- 12.10.2023 V2.0:
-	    - Integrado PR de Laura García de Marina https://github.com/lgarciademarina para integrar los listados de provincias y municipios desde los servicios de catastro
-	    - Se separa los pasos de descarga y añadir capas al proyecto
-	    - El complmento ya es solo compatible con versiones 2.*
-	    - Añadidos más mensajes de aviso al usuario
-	    - No es ncesario convertir a geojsonn los GML. Se cargan ya directamente.
-	    - Revisiones y mejoras en el estilo de código
+        - Integrado PR de Laura García de Marina https://github.com/lgarciademarina para integrar los listados de provincias y municipios desde los servicios de catastro
+        - Se separa los pasos de descarga y añadir capas al proyecto
+        - El complemento ya es solo compatible con versiones 3.* de QGIS
+        - Añadidos más mensajes de aviso al usuario
+        - No es ncesario convertir a geojson los GML. Se cargan ya directamente.
+        - Revisiones y mejoras en el estilo de código
 	- 22.06.2018 V1.1: Se cambia el nombre de la carpeta de descarga, dejándo solo el códifo INE. Soluciona problemas de espacios en la ruta utilizada para convertir los GML a GeoJSON. Ver Issue en GitHub
 	- 17.06.2018 V1.0: PR de Fran Raga: Arregla errores de la API para QgsMessageBar. Para salvar el error de carga de GML en QGIS3, son convertidos a geojson. Sobre el PR de Fran: Añadido try/except para que pueda ser usado por QGIS 2.* Se añade el EPSG:25830 de salida para la conversión de los geojson.
 	- 11.06.2018 V0.6: Errores en nombres de municipios con cedilla (issue Carlos Cámara). Bajada de versión hasta 2.99 por fallo de carga del GML en QGIS 3 y error en la API.
