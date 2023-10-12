@@ -8,10 +8,10 @@
 
 [general]
 name=Spanish Inspire Catastral Downloader
-qgisMinimumVersion=2.16
+qgisMinimumVersion=3.00
 qgisMaximumVersion=3.99
 description=Descarga de cartografía catastral según Inspire
-version=1.1
+version=2.0
 author=Patricio Soriano :: SIGdeletras.com
 email=pasoriano@sigdeletras.com
 
@@ -24,15 +24,22 @@ repository=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
 
 # Uncomment the following line and add your changelog:
 changelog=
-	22.06.2018 V1.1: Se cambia el nombre de la carpeta de descarga, dejándo solo el códifo INE. Soluciona problemas de espacios en la ruta utilizada para convertir los GML a GeoJSON. Ver Issue en GitHub
-	17.06.2018 V1.0: PR de Fran Raga: Arregla errores de la API para QgsMessageBar. Para salvar el error de carga de GML en QGIS3, son convertidos a geojson. Sobre el PR de Fran: Añadido try/except para que pueda ser usado por QGIS 2.* Se añade el EPSG:25830 de salida para la conversión de los geojson.
-	11.06.2018 V0.6: Errores en nombres de municipios con cedilla (issue Carlos Cámara). Bajada de versión hasta 2.99 por fallo de carga del GML en QGIS 3 y error en la API.
-	09.09.2017 V0.5: Barra de progreso. Mejora en la interfaz e iconos. Descarga bajo un proxy. Codificación. (PR de Francisco Raga)
-	28.08.2017 V0.4: Cambios para QGIS3
-	28.08.2017 V0.3.1: Errores en nombres de municipios con punto.
-	21.07.2017 V0.3: Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)
-	21.07.2017 V0.2: Se añaden las "gerencias" de Gijón, Jerez, Vigo, Ceuta y Melilla (por Francisco Pérez Sampayo)
-	19.07.2017 V0.1: Primera versión
+	- 12.10.2023 V2.0:
+	    - Integrado PR de Laura García de Marina https://github.com/lgarciademarina para integrar los listados de provincias y municipios desde los servicios de catastro
+	    - Se separa los pasos de descarga y añadir capas al proyecto
+	    - El complmento ya es solo compatible con versiones 2.*
+	    - Añadidos más mensajes de aviso al usuario
+	    - No es ncesario convertir a geojsonn los GML. Se cargan ya directamente.
+	    - Revisiones y mejoras en el estilo de código
+	- 22.06.2018 V1.1: Se cambia el nombre de la carpeta de descarga, dejándo solo el códifo INE. Soluciona problemas de espacios en la ruta utilizada para convertir los GML a GeoJSON. Ver Issue en GitHub
+	- 17.06.2018 V1.0: PR de Fran Raga: Arregla errores de la API para QgsMessageBar. Para salvar el error de carga de GML en QGIS3, son convertidos a geojson. Sobre el PR de Fran: Añadido try/except para que pueda ser usado por QGIS 2.* Se añade el EPSG:25830 de salida para la conversión de los geojson.
+	- 11.06.2018 V0.6: Errores en nombres de municipios con cedilla (issue Carlos Cámara). Bajada de versión hasta 2.99 por fallo de carga del GML en QGIS 3 y error en la API.
+	- 09.09.2017 V0.5: Barra de progreso. Mejora en la interfaz e iconos. Descarga bajo un proxy. Codificación. (PR de Francisco Raga)
+	- 28.08.2017 V0.4: Cambios para QGIS3
+	- 28.08.2017 V0.3.1: Errores en nombres de municipios con punto.
+	- 21.07.2017 V0.3: Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)
+	- 21.07.2017 V0.2: Se añaden las "gerencias" de Gijón, Jerez, Vigo, Ceuta y Melilla (por Francisco Pérez Sampayo)
+	- 19.07.2017 V0.1: Primera versión
 
 # Tags are comma separated with spaces allowed
 tags=cadastre, inspire, catastro, Spain, España, ATOM, INSPIRE
