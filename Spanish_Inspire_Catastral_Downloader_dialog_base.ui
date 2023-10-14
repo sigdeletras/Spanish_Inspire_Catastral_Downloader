@@ -50,6 +50,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="locale">
+        <locale language="English" country="UnitedKingdom"/>
+       </property>
       </widget>
      </item>
      <item row="1" column="1">
@@ -62,6 +65,9 @@
        </property>
        <property name="contextMenuPolicy">
         <enum>Qt::DefaultContextMenu</enum>
+       </property>
+       <property name="locale">
+        <locale language="English" country="UnitedKingdom"/>
        </property>
       </widget>
      </item>
@@ -77,6 +83,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="locale">
+        <locale language="English" country="UnitedKingdom"/>
+       </property>
        <property name="text">
         <string>Buildings</string>
        </property>
@@ -90,6 +99,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="locale">
+        <locale language="English" country="UnitedKingdom"/>
+       </property>
        <property name="text">
         <string>Addresses</string>
        </property>
@@ -102,6 +114,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="locale">
+        <locale language="English" country="UnitedKingdom"/>
        </property>
        <property name="text">
         <string>Cadastral Parcels</string>
@@ -146,8 +161,11 @@
    </item>
    <item>
     <widget class="QPushButton" name="pushButton_run">
+     <property name="locale">
+      <locale language="English" country="UnitedKingdom"/>
+     </property>
      <property name="text">
-      <string>Descargar datos</string>
+      <string>Download cadastral data</string>
      </property>
     </widget>
    </item>
