@@ -9,22 +9,13 @@ Para más información puede consultarse la entrada en [SIGdeletras.com](http://
 
 ## Instalar plugin
 
-**Disponible para QGIS 2.18.* y 3.0.***
+**Disponible para QGIS >3.***
 
 El complemento puede ser instalado desde el menú <b>Complementos>Administrar e instalar complementos</b> de QGIS. Para localizar de forma rápida el complemento puede introducirse el término <i>"catastro"</i> en la herramienta de búsqueda.
 
 <img src="help/search.PNG" width="70%">
 
 Igualmente, puede descargarse el archivo zip desde este repositorio y <b>descomprimirlo en la carpeta de plugins de QGIS</b> según el sistema operativo.
-
-Para QGIS 2.18.* :
-
-<ul>
-<li>Windows: <i>c:\Users\username\.qgis2\python\plugins</i></li>
-<li>Mac: <i>/Users/username/.qgis2/python/plugins</i></li>
-<li>Linux: <i>/home/username/.qgis2/python/plugins</i></li>
-</ul>
-Donde tendremos que reemplazar “username” por nuestro usuario.
 
 ## Uso
 
@@ -40,7 +31,9 @@ Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
 <li>Indicar el conjunto de capas a descargar: Parcelas Catastrales, Edificios y/o Direcciones</li>
 </ul>
 
-El programa descarca los GML correspondientes y lso convierte a formato GeoJSON en la ubicación indicada y dentro de una carpeta con el códifo INE del municipio seleccionado. Si se desea añadir las capas GeoJSON descargardas al proyecto QGIS activo se debe marcar la casilla correspondiente. Si se desea pueden cargarse a posteriori tanto los GeoJSON como los GML originales, aunque en la versión QGIS 3.* no se visualizan correctamente los GML catastrales tal y como son suministrados.
+El programa descarca los GML correspondientes dentro de una carpeta con el código INE del municipio seleccionado. 
+
+Si se desea añadir las capas GML descargardas al proyecto QGIS activo se debe marcar la casilla correspondiente.
 
 ### Conjunto de datos INSPIRE de la Dirección General de Catastro
 
@@ -60,11 +53,14 @@ El PDF con la descripción completa de la estructura de datos puede consultarse 
 
 <img src="help\cadastral_layers.PNG" width="95%">
 
-## 2DO
-
-- Posibilidad de applicar simbología a las capas
-
 ## Changelog
+- 12.10.2023 V2.0:
+  - El complemento ya es solo compatible con versiones 3.* de QGIS
+  - Integrado PR de [Laura García de Marina](https://github.com/lgarciademarina) para integrar los listados de provincias y municipios desde los servicios API de Catastro
+  - Se separa los pasos de descarga y añadir capas al proyecto
+  - Añadidos más mensajes de aviso al usuario
+  - No es necesario convertir a geojson los GML. Se cargan los GML directamente.
+  - Revisiones y mejoras en el estilo de código.
 - 22.06.2018 V1.1: Se cambia el nombre de la carpeta de descarga, dejándo solo el códifo INE. Soluciona problemas de espacios en la ruta utilizada para convertir los GML a GeoJSON.
 - 17.06.2018 V1.0: PR de Fran Raga: Arregla errores de la API para QgsMessageBar. Para salvar el error de carga de GML en QGIS3, son convertidos a geojson. Sobre el PR de Fran: Añadido try/except para que pueda ser usado por QGIS 2.* Se añade el EPSG:25830 de salida para la conversión de los geojson.
 - 11.06.2018 V0.6: Errores en nombres de municipios con cedilla (issue de [Carlos Cámara](https://github.com/ccamara) . Bajada de versión hasta 2.99 por fallo de carga del GML en QGIS 3 y error en la API.
