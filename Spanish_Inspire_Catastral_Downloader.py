@@ -232,8 +232,8 @@ class Spanish_Inspire_Catastral_Downloader:
         """Message for fields without information"""
 
         messages = {
-            1: f'Debe completar los datos de la provincia y municipio e indicar la ruta de descarga.',
-            2: f'Debe seleccionar al menos una entidad catastral a descargar.'
+            1: self.tr('You must complete the data of the province and municipality and indicate the download route.'),
+            2: self.tr('You must select at least one cadastral entity to download.')
         }
 
         QgsMessageLog.logMessage(messages[option], 'SICD',
@@ -294,7 +294,7 @@ class Spanish_Inspire_Catastral_Downloader:
             QgsMessageLog.logMessage(f'09.3 GML {input} converted to {output}', 'SICD', level=Qgis.Info)
 
         except Exception as err:
-            msg = "Error al convertir los archivos a GML"
+            msg = self.tr("Error converting files to GML")
             QgsMessageLog.logMessage(f'{msg}', 'SICD', level=Qgis.Warning)
             self.msgBar.pushMessage(f'{msg}', level=Qgis.Warning, duration=3)
             raise
@@ -327,7 +327,7 @@ class Spanish_Inspire_Catastral_Downloader:
                     url_cadastre = entry.find('{http://www.w3.org/2005/Atom}id').text
                     QgsMessageLog.logMessage(f'06.2 {url_cadastre}', 'SICD', level=Qgis.Info)
                 except:
-                    msg = "1 No se ha encontrado el conjunto de datos."
+                    msg = self.tr("The data set was not found.")
                     self.msgBar.pushMessage(msg, level=Qgis.Info, duration=3)
 
                 if url_cadastre is not None and url_cadastre.endswith('{}.zip'.format(inecode_catastro)):
@@ -363,7 +363,8 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 QgsMessageLog.logMessage(f"7.4 Ficheros descargados correctamente en {self.data_dir}", 'SICD',
                                          level=Qgis.Success)
-                msg = f"Ficheros descargados correctamente en {self.data_dir}"
+                txt = self.tr('Files downloaded correctly in')
+                msg = f'😎 {txt} <a href="file:///{self.data_dir}">{self.data_dir}</a>'
                 self.msgBar.pushMessage(msg, level=Qgis.Success, duration=5)
                 self.unzip_files(self.data_dir)
 
@@ -372,9 +373,9 @@ class Spanish_Inspire_Catastral_Downloader:
                 raise
         else:
             QApplication.restoreOverrideCursor()
-
-            msg = f"El conjunto de datos ya existe en la carpeta {self.data_dir} " \
-                  f"Debe borrarlos antes si quieres descargarlos en la misma ubicación"
+            txt1 = self.tr('The data set already exists in the folder')
+            txt2 = self.tr('You must delete them first if you want to download them to the same location')
+            msg = f'{txt1} <a href="file:///{self.data_dir}">{self.data_dir}</a>. {txt2} '
 
             QgsMessageLog.logMessage(msg, 'SICD', level=Qgis.Critical)
 
@@ -393,12 +394,12 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 self.dlg.pushButton_add_layers.setEnabled(1)
             else:
-                msg = "Seleccione al menos un dataset para descargar."
+                msg = self.tr("Select at least one data set to download")
                 self.msgBar.pushMessage(msg, level=Qgis.Critical)
                 return
         except:
 
-            self.msgBar.pushMessage("Error descomprimiendo el fichero.", level=Qgis.Warning, duration=3)
+            self.msgBar.pushMessage(self.tr("An error occurred while decompressing the file."), level=Qgis.Warning, duration=3)
 
         QApplication.restoreOverrideCursor()
 
@@ -487,7 +488,7 @@ class Spanish_Inspire_Catastral_Downloader:
             response_json = json.loads(response)
             provincias = response_json['consulta_provincieroResult']['provinciero']['prov']
 
-            list_provincias = ['Seleccione una provincia...']
+            list_provincias = [self.tr('Select a province...')]
 
             for provincia in provincias:
                 list_provincias.append('{} - {}'.format(provincia['cpine'], provincia['np']))
@@ -573,7 +574,8 @@ class Spanish_Inspire_Catastral_Downloader:
                         self.unset_proxy()
                 except Exception as e:
                     QApplication.restoreOverrideCursor()
-                    msg = f"Error estableciendo el proxy : {str(e)}"
+                    txt = self.tr('Error setting proxy')
+                    msg = f"{txt} : {str(e)}"
                     self.msgBar.pushMessage(msg, level=Qgis.Warning, duration=3)
                     raise
 
@@ -593,4 +595,4 @@ class Spanish_Inspire_Catastral_Downloader:
             except Exception as e:
                 QApplication.restoreOverrideCursor()
                 self.dlg.pushButton_add_layers.setEnabled(0)
-                self.msgBar.pushMessage("Failed! " + str(e), level=Qgis.Warning, duration=3)
+                self.msgBar.pushMessage(self.tr("Failed!")  + str(e), level=Qgis.Warning, duration=3)
