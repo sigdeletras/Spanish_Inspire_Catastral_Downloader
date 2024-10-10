@@ -11,7 +11,7 @@ name=Spanish Inspire Catastral Downloader
 qgisMinimumVersion=3.00
 qgisMaximumVersion=3.99
 description=Descarga de cartografía catastral según Inspire
-version=2.0
+version=2.1
 author=Patricio Soriano :: SIGdeletras.com
 email=pasoriano@sigdeletras.com
 
@@ -24,6 +24,8 @@ repository=https://github.com/sigdeletras/Spanish_Inspire_Catastral_Downloader
 
 # Uncomment the following line and add your changelog:
 changelog=
+	- 10.10.2024 V2.1:
+		- Cambio en la dirección general del servicio de https://www.catastro.minhap.es a https://www.catastro.hacienda.gob.es
 	- 12.10.2023 V2.0:
         - Integrado PR de Laura García de Marina https://github.com/lgarciademarina para integrar los listados de provincias y municipios desde los servicios de catastro
         - Se separa los pasos de descarga y añadir capas al proyecto

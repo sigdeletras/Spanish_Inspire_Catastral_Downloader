@@ -61,7 +61,7 @@ from .Config import _port, _proxy
 
 CODPROV = ''
 CODMUNI = ''
-
+ULR_CATASTRO = 'https://www.catastro.hacienda.gob.es'
 
 class Spanish_Inspire_Catastral_Downloader:
     """QGIS Plugin Implementation."""
@@ -304,8 +304,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
         inecode_catastro = inecode_catastro.split(' - ')[0]
         CODPROV = inecode_catastro[0:2]
-
-        ATOM = f'https://www.catastro.minhap.es/INSPIRE/{tipo}/{CODPROV}/ES.SDGC.{codtipo}.atom_{CODPROV}.xml?tipo={tipo}&wd={wd}'
+        ATOM = f'{ULR_CATASTRO}/INSPIRE/{tipo}/{CODPROV}/ES.SDGC.{codtipo}.atom_{CODPROV}.xml?tipo={tipo}&wd={wd}'
 
         req = QtNetwork.QNetworkRequest(QUrl(ATOM))
         self.manager_ATOM.get(req)
@@ -431,6 +430,8 @@ class Spanish_Inspire_Catastral_Downloader:
 
     def run(self):
         """Run method that performs all the real work"""
+
+        QgsMessageLog.logMessage(f"0. URL de Catastro {ULR_CATASTRO}", 'SICD', level=Qgis.Info)
 
         self.dlg.lineEdit_path.clear()
         self.dlg.comboBox_province.clear()
