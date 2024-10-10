@@ -305,7 +305,7 @@ class Spanish_Inspire_Catastral_Downloader:
         inecode_catastro = inecode_catastro.split(' - ')[0]
         CODPROV = inecode_catastro[0:2]
 
-        ATOM = f'https://www.catastro.minhap.es/INSPIRE/{tipo}/{CODPROV}/ES.SDGC.{codtipo}.atom_{CODPROV}.xml?tipo={tipo}&wd={wd}'
+        ATOM = f'https://www.catastro.hacienda.gob.es/INSPIRE/{tipo}/{CODPROV}/ES.SDGC.{codtipo}.atom_{CODPROV}.xml?tipo={tipo}&wd={wd}'
 
         req = QtNetwork.QNetworkRequest(QUrl(ATOM))
         self.manager_ATOM.get(req)
