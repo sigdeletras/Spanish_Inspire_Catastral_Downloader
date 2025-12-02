@@ -30,6 +30,7 @@ import socket
 import subprocess
 import xml.etree.ElementTree as ET
 import zipfile
+import ssl
 from urllib import parse, request
 
 # Import the PyQt and QGIS libraries
@@ -43,6 +44,7 @@ except ImportError:
     None
 
 from PyQt5 import QtNetwork, uic
+from PyQt5.QtNetwork import QSslConfiguration, QSslSocket
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -301,85 +303,99 @@ class Spanish_Inspire_Catastral_Downloader:
         return
 
     def search_url(self, inecode_catastro, tipo, codtipo, wd):
-
         inecode_catastro = inecode_catastro.split(' - ')[0]
         CODPROV = inecode_catastro[0:2]
         ATOM = f'{ULR_CATASTRO}/INSPIRE/{tipo}/{CODPROV}/ES.SDGC.{codtipo}.atom_{CODPROV}.xml?tipo={tipo}&wd={wd}'
 
         req = QtNetwork.QNetworkRequest(QUrl(ATOM))
+        # SSL Fix
+        sslConf = QtNetwork.QSslConfiguration.defaultConfiguration()
+        sslConf.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
+        req.setSslConfiguration(sslConf)
+
         self.manager_ATOM.get(req)
 
     def generate_download_url(self, reply):
-
-        QgsMessageLog.logMessage(f'06.1 Genera url de descarga generate_download_url()', 'SICD', level=Qgis.Info)
-
         inecode_catastro = self.dlg.comboBox_municipality.currentText().split(' - ')[0]
-
         er = reply.error()
 
         if er == QtNetwork.QNetworkReply.NetworkError.NoError:
             bytes_string = reply.readAll()
-            response = str(bytes_string, 'iso-8859-1')
-            root = ET.fromstring(response)
-            for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
-                try:
-                    url_cadastre = entry.find('{http://www.w3.org/2005/Atom}id').text
-                    QgsMessageLog.logMessage(f'06.2 {url_cadastre}', 'SICD', level=Qgis.Info)
-                except:
-                    msg = self.tr("The data set was not found.")
-                    self.msgBar.pushMessage(msg, level=Qgis.Info, duration=3)
+            try:
+                response = str(bytes_string, 'utf-8')
+            except:
+                response = str(bytes_string, 'iso-8859-1')
+            
+            try:
+                root = ET.fromstring(response)
+                found = False
+                for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
+                    try:
+                        url_cadastre = entry.find('{http://www.w3.org/2005/Atom}id').text
+                    except:
+                        continue
 
-                if url_cadastre is not None and url_cadastre.endswith('{}.zip'.format(inecode_catastro)):
-                    params = parse.parse_qs(parse.urlparse(reply.request().url().toString()).query)
-                    tipo = params['tipo'][0]
-                    wd = params['wd'][0]
-                    self.create_download_file(inecode_catastro, tipo, url_cadastre, wd)
-                    break
+                    # Comprobación más flexible
+                    if url_cadastre is not None and url_cadastre.endswith('.zip'):
+                        # Reconstruir parámetros
+                        query_string = reply.request().url().query()
+                        params = parse.parse_qs(query_string)
+                        tipo = params.get('tipo', ['Unknown'])[0]
+                        wd = params.get('wd', [''])[0]
+                        
+                        self.create_download_file(inecode_catastro, tipo, url_cadastre, wd)
+                        found = True
+                        break
+                
+                if not found:
+                    self.msgBar.pushMessage(self.tr("No ZIP file found for this municipality."), level=Qgis.Warning, duration=4)
+                    
+            except Exception as e:
+                QgsMessageLog.logMessage(f'XML Parse Error: {str(e)}', 'SICD', level=Qgis.Critical)
+
+        else:
+            QgsMessageLog.logMessage(f'Network Error: {reply.errorString()}', 'SICD', level=Qgis.Critical)
 
     def create_download_file(self, inecode_catastro, tipo, url, wd):
-
-        QgsMessageLog.logMessage(f'07.1 Función create_download_file', 'SICD', level=Qgis.Info)
-        QgsMessageLog.logMessage(
-            f'07.2 Parámetros inecode_catastro {inecode_catastro}, tipo {tipo}, url {url}, wd {wd})',
-            'SICD', level=Qgis.Info)
-
         self.data_dir = os.path.normpath(os.path.join(wd, inecode_catastro))
 
-        QgsMessageLog.logMessage(f'07.1 {self.data_dir}', 'SICD', level=Qgis.Info)
         try:
             os.makedirs(self.data_dir)
-            QgsMessageLog.logMessage(
-                f'07.3 Creada  carpeta en {self.data_dir})', 'SICD', level=Qgis.Success)
         except OSError:
             pass
 
-        zip_file = os.path.join(self.data_dir, "{}_{}.zip".format(inecode_catastro, tipo))  # poner fecha
+        zip_file = os.path.join(self.data_dir, "{}_{}.zip".format(inecode_catastro, tipo))
 
         if not os.path.exists(zip_file):
             e_url = self.encode_url(url)
             try:
-                request.urlretrieve(e_url, zip_file, self.reporthook)
+                # SSL Context para urllib
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                
+                https_handler = request.HTTPSHandler(context=ctx)
+                opener = request.build_opener(https_handler)
+                request.install_opener(opener)
 
-                QgsMessageLog.logMessage(f"7.4 Ficheros descargados correctamente en {self.data_dir}", 'SICD',
-                                         level=Qgis.Success)
+                request.urlretrieve(e_url, zip_file, self.reporthook)
+                
                 txt = self.tr('Files downloaded correctly in')
-                msg = f'😎 {txt} <a href="file:///{self.data_dir}">{self.data_dir}</a>'
+                msg = f'{txt} <a href="file:///{self.data_dir}">{self.data_dir}</a>'
                 self.msgBar.pushMessage(msg, level=Qgis.Success, duration=5)
+                
                 self.unzip_files(self.data_dir)
 
-            except:
-                shutil.rmtree(self.data_dir)
+            except Exception as e:
+                if os.path.exists(self.data_dir):
+                    shutil.rmtree(self.data_dir)
+                self.msgBar.pushMessage(f"Download Error: {str(e)}", level=Qgis.Critical, duration=5)
                 raise
         else:
             QApplication.restoreOverrideCursor()
             txt1 = self.tr('The data set already exists in the folder')
-            txt2 = self.tr('You must delete them first if you want to download them to the same location')
-            msg = f'{txt1} <a href="file:///{self.data_dir}">{self.data_dir}</a>. {txt2} '
-
-            QgsMessageLog.logMessage(msg, 'SICD', level=Qgis.Critical)
-
-            self.msgBar.pushMessage(msg, level=Qgis.Critical)
-            pass
+            msg = f'{txt1} <a href="file:///{self.data_dir}">{self.data_dir}</a>'
+            self.msgBar.pushMessage(msg, level=Qgis.Warning)
 
     def unzip_files(self, wd):
 
@@ -466,17 +482,19 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.pushButton_add_layers.setEnabled(0)
 
     def obtener_provincias(self):
-
-        QgsMessageLog.logMessage("01.1 Obtenindo provincias (obtener_provincias)", 'SICD', level=Qgis.Info)
-
+        QgsMessageLog.logMessage("01.1 Obteniendo provincias...", 'SICD', level=Qgis.Info)
         self.manager_provincias = QtNetwork.QNetworkAccessManager()
         self.manager_provincias.finished.connect(self.rellenar_provincias)
 
-        url = 'http://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/ObtenerProvincias'
-
-        QgsMessageLog.logMessage(f'01.2 URL JSON Provincias de Catastro {url}', 'SICD', level=Qgis.Info)
-
+        # Usar HTTPS
+        url = 'https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/ObtenerProvincias'
+        
         req = QtNetwork.QNetworkRequest(QUrl(url))
+        # SSL Fix
+        sslConf = QtNetwork.QSslConfiguration.defaultConfiguration()
+        sslConf.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
+        req.setSslConfiguration(sslConf)
+
         self.manager_provincias.get(req)
 
     def rellenar_provincias(self, reply):
@@ -498,25 +516,24 @@ class Spanish_Inspire_Catastral_Downloader:
             self.dlg.comboBox_province.currentIndexChanged.connect(self.obtener_municipos)
 
     def obtener_municipos(self):
-
         try:
             self.manager_municipios = QtNetwork.QNetworkAccessManager()
             self.manager_municipios.finished.connect(self.rellenar_municipios)
             provincia_cod = self.dlg.comboBox_province.currentText()
-            msg = f'03.1 Obteniendo municipios (obtener_municipios) de la provincia {provincia_cod}'
-            QgsMessageLog.logMessage(msg, 'SICD', level=Qgis.Info)
             provincia = provincia_cod.split(' - ')[0]
 
-            url = 'http://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejeroCodigos.svc/json/ObtenerMunicipiosCodigos?CodigoProvincia=' + str(
-                provincia)
-
-            QgsMessageLog.logMessage(f'03.2 URL JSON Municipios de Catastro de la {provincia_cod}:  {url}', 'SICD',
-                                     level=Qgis.Info)
-
+            # Usar HTTPS
+            url = 'https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejeroCodigos.svc/json/ObtenerMunicipiosCodigos?CodigoProvincia=' + str(provincia)
+            
             req = QtNetwork.QNetworkRequest(QUrl(url))
+            # SSL Fix
+            sslConf = QtNetwork.QSslConfiguration.defaultConfiguration()
+            sslConf.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
+            req.setSslConfiguration(sslConf)
+
             self.manager_municipios.get(req)
         except Exception as e:
-            print(e)
+            QgsMessageLog.logMessage(str(e), 'SICD', level=Qgis.Warning)
 
     def rellenar_municipios(self, reply):
 
