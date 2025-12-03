@@ -316,6 +316,7 @@ class Spanish_Inspire_Catastral_Downloader:
         self.manager_ATOM.get(req)
 
     def generate_download_url(self, reply):
+        # Obtenemos el código que ha seleccionado el usuario (Ej: 46250)
         inecode_catastro = self.dlg.comboBox_municipality.currentText().split(' - ')[0]
         er = reply.error()
 
@@ -335,8 +336,9 @@ class Spanish_Inspire_Catastral_Downloader:
                     except:
                         continue
 
-                    # Comprobación más flexible
-                    if url_cadastre is not None and url_cadastre.endswith('.zip'):
+                    # Comprobamos que sea un ZIP Y que contenga el código del municipio seleccionado
+                    if url_cadastre and url_cadastre.endswith('.zip') and (inecode_catastro in url_cadastre): # <--- AQUÍ ESTÁ EL FILTRO
+                        
                         # Reconstruir parámetros
                         query_string = reply.request().url().query()
                         params = parse.parse_qs(query_string)
