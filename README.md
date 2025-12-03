@@ -54,6 +54,10 @@ El PDF con la descripción completa de la estructura de datos puede consultarse 
 <img src="help\cadastral_layers.PNG" width="95%">
 
 ## Changelog
+- 02.12.2025 V2.2:
+	- Cambio el manejo de HTTPS/SSL, eliminado codigo de Debug deprecado.
+- 10.10.2024 V2.1:
+	- Cambio en la dirección general del servicio de https://www.catastro.minhap.es a https://www.catastro.hacienda.gob.es
 - 12.10.2023 V2.0:
   - El complemento ya es solo compatible con versiones 3.* de QGIS
   - Integrado PR de [Laura García de Marina](https://github.com/lgarciademarina) para integrar los listados de provincias y municipios desde los servicios API de Catastro

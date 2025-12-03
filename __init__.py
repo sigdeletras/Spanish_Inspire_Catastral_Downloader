@@ -22,12 +22,12 @@
  This script initializes the plugin, making it known to QGIS.
 """
 # For Debug
-import sys
-try:
-    sys.path.append(
-        "D:\eclipse\plugins\org.python.pydev_6.2.0.201711281614\pysrc")
-except ImportError:
-    None
+# import sys
+# try:
+#    sys.path.append(
+#         "D:\eclipse\plugins\org.python.pydev_6.2.0.201711281614\pysrc")
+# except ImportError:
+#     None
     
 from .resources import *
 # noinspection PyPep8Naming
