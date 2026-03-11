@@ -10,7 +10,7 @@ try:
     from PyQt5 import QtCore
 
 except:
-    from PyQt4 import QtCore
+    from PyQt6 import QtCore
 
 qt_resource_data = b"\
 \x00\x00\x08\x15\

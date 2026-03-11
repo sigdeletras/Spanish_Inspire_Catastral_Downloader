@@ -28,17 +28,15 @@ import os
 
 try:
     from qgis.core import Qgis
-    from PyQt5.QtCore import *
-    from PyQt5.QtGui import *
-    from PyQt5.QtWidgets import *
-    from PyQt5 import uic
-    QT_VERSION=5
-    os.environ['QT_API'] = 'pyqt5'
+    from qgis.PyQt.QtCore import *
+    from qgis.PyQt.QtGui import *
+    from qgis.PyQt.QtWidgets import *
+    from qgis.PyQt import uic
+    from .qt.get_qt_elements import *
+    QT_VERSION=QT_MAJOR
+    os.environ['QT_API'] = f'pyqt{QT_MAJOR}'
 except:
-    from PyQt4.QtCore import *
-    from PyQt4.QtGui import *
-    from PyQt4 import uic
-    QT_VERSION=4
+    raise ValueError(f'QT_VERSION {QT_VERSION} not supported')
 
 import os.path
 from qgis.core import *
