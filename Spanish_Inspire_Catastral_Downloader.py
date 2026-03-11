@@ -42,14 +42,20 @@ try:
 except ImportError:
     None
 
-from PyQt5 import QtNetwork, uic
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from qgis.PyQt import QtNetwork, uic
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import Qgis
+from .qt.get_qt_elements import *
 
-QT_VERSION = 5
-os.environ['QT_API'] = 'pyqt5'
+
+if QT_MAJOR == 5:
+    os.environ['QT_API'] = 'pyqt5'
+elif QT_MAJOR == 6:
+    os.environ['QT_API'] = 'pyqt6'
+else:
+    raise ValueError(f'QT_VERSION {QT_MAJOR} not supported')
 
 from qgis.core import *
 from qgis.core import (QgsMessageLog)
@@ -453,7 +459,7 @@ class Spanish_Inspire_Catastral_Downloader:
         self.dlg.show()
 
         # Run the dialog event loop
-        result = self.dlg.exec_()
+        result = exec_dialog(self.dlg)
 
         # See if OK was pressed
         if result: pass
@@ -554,7 +560,7 @@ class Spanish_Inspire_Catastral_Downloader:
         else:
             QgsMessageLog.logMessage("05 Inicio de descarga", 'SICD', level=Qgis.Info)
             try:
-                QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+                QApplication.setOverrideCursor(QCursor(WAIT_CURSOR))
                 inecode_catastro = self.dlg.comboBox_municipality.currentText()
 
                 zippath = self.dlg.lineEdit_path.text()

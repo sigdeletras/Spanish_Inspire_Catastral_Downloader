@@ -9,7 +9,7 @@
 [general]
 name=Spanish Inspire Catastral Downloader
 qgisMinimumVersion=3.00
-qgisMaximumVersion=3.99
+qgisMaximumVersion=4.99
 description=Descarga de cartografía catastral según Inspire
 version=2.1
 author=Patricio Soriano :: SIGdeletras.com
@@ -54,4 +54,5 @@ experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
+supportsQt6=True
 
