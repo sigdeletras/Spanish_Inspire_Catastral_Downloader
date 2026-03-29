@@ -1,35 +1,33 @@
-# Spanish Inspire Catastral Downloader (V2.0) <img src="icon.png" height="42" width="42">
+# Spanish Inspire Catastral Downloader (V3.0) 
 
+Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y direcciones de España. La descarga usa el servicio ATOM según la Directiva Inspire. ([http://www.catastro.minhap.gob.es/webinspire/index.html](http://www.catastro.minhap.gob.es/webinspire/index.html))
 
-Plugin de QGIS para la descarga de datos catastrales de parcelas, edificios y direcciones de España. La descarga usa el servicio ATOM según la Directiva Inspire. (<a href='http://www.catastro.minhap.gob.es/webinspire/index.html'>http://www.catastro.minhap.gob.es/webinspire/index.html</a>)
-
-<i>QGIS Plugin for the download of cadastral data of parcels, buildings and addresses of Spain. The download uses the ATOM service according to the Inspire Directive. (<a href='http://www.catastro.minhap.gob.es/webinspire/index_eng.html'>http://www.catastro.minhap.gob.es/webinspire/index_eng.html</a>)</i>
+*QGIS Plugin for the download of cadastral data of parcels, buildings and addresses of Spain. The download uses the ATOM service according to the Inspire Directive. ([http://www.catastro.minhap.gob.es/webinspire/index_eng.html](http://www.catastro.minhap.gob.es/webinspire/index_eng.html))*
 
 Para más información puede consultarse la entrada en [SIGdeletras.com](http://www.sigdeletras.com/2017/blog/plugin-de-qgis-para-descarga-de-datos-catastrales-inspire/)
 
 ## Instalar plugin
 
-**Disponible para QGIS >3.***
+**Disponible para QGIS >4.***
 
-El complemento puede ser instalado desde el menú <b>Complementos>Administrar e instalar complementos</b> de QGIS. Para localizar de forma rápida el complemento puede introducirse el término <i>"catastro"</i> en la herramienta de búsqueda.
+El complemento puede ser instalado desde el menú **Complementos>Administrar e instalar complementos** de QGIS. Para localizar de forma rápida el complemento puede introducirse el término *"catastro"* en la herramienta de búsqueda.
 
-<img src="help/search.PNG" width="70%">
 
-Igualmente, puede descargarse el archivo zip desde este repositorio y <b>descomprimirlo en la carpeta de plugins de QGIS</b> según el sistema operativo.
+
+Igualmente, puede descargarse el archivo zip desde este repositorio y **descomprimirlo en la carpeta de plugins de QGIS** según el sistema operativo.
 
 ## Uso
 
-Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú <b>Complementos>Descarga Catrastro Inspire</b> o bien <b>Spanish Inspire Catastral Downloader</b> si tenemos instalado QGIS en otro idioma.
+Tras su instalación el plugin puede ser ejecutado desde la barra de herramientas o bien desde el menú **Complementos>Descarga Catrastro Inspire** o bien **Spanish Inspire Catastral Downloader** si tenemos instalado QGIS en otro idioma.
 
-<img src="help/ui.PNG" width="50%">
 
-Una vez ejecutado el complemento se debe <b>obligatoriamente</b>:
-<ul>
-<li>Seleccionar la provincia</li>
-<li>Seleccionar el municipio</li>
-<li>Indicar la ruta local de descarga</li>
-<li>Indicar el conjunto de capas a descargar: Parcelas Catastrales, Edificios y/o Direcciones</li>
-</ul>
+
+Una vez ejecutado el complemento se debe **obligatoriamente**:
+
+- Seleccionar la provincia
+- Seleccionar el municipio
+- Indicar la ruta local de descarga
+- Indicar el conjunto de capas a descargar: Parcelas Catastrales, Edificios y/o Direcciones
 
 El programa descarca los GML correspondientes dentro de una carpeta con el código INE del municipio seleccionado. 
 
@@ -51,9 +49,11 @@ Los archivos geográficos (GML) contenidos en cada conjunto de datos son:
 
 El PDF con la descripción completa de la estructura de datos puede consultarse en el siguiente [enlace](http://www.catastro.minhap.es/webinspire/documentos/Conjuntos%20de%20datos.pdf)
 
-<img src="help\cadastral_layers.PNG" width="95%">
+
 
 ## Changelog
+- 29.03.2026 V3.0:
+		- Compatibilidad con Qt 6 / QGIS 4 (PR de [Miquel Febrer](https://github.com/MFGeo))
 - 12.10.2023 V2.0:
   - El complemento ya es solo compatible con versiones 3.* de QGIS
   - Integrado PR de [Laura García de Marina](https://github.com/lgarciademarina) para integrar los listados de provincias y municipios desde los servicios API de Catastro
@@ -70,3 +70,4 @@ El PDF con la descripción completa de la estructura de datos puede consultarse 
 - 21.07.2017 V0.3: Corregidos paths para que funcione en todos los OS (por Raúl Nanclares)
 - 21.07.2017 V0.2: Se añaden las "gerencias" de Gijón, Jerez, Vigo, Ceuta y Melilla (por Francisco Pérez Sampayo)
 - 19.07.2017 V0.1: Primera versión
+
