@@ -27,10 +27,11 @@ import os
 import os.path
 import shutil
 import socket
+import ssl
 import subprocess
 import xml.etree.ElementTree as ET
 import zipfile
-from urllib import parse, request
+from urllib import error, parse, request
 
 # Import the PyQt and QGIS libraries
 from qgis.PyQt.QtCore import Qt
@@ -88,7 +89,10 @@ class Spanish_Inspire_Catastral_Downloader:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale = QSettings().value('locale/userLocale', 'en')
+        if hasattr(locale, 'value'):
+            locale = locale.value()
+        locale = str(locale or 'en')[:2]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
@@ -277,7 +281,9 @@ class Spanish_Inspire_Catastral_Downloader:
 
         url = parse.urlsplit(url)
         url = list(url)
-        url[2] = parse.quote(url[2])
+        # Catastro sometimes publishes repeated blanks in municipality paths.
+        url[2] = parse.quote('/'.join(' '.join(part.split())
+                                      for part in url[2].split('/')))
         encoded_link = parse.urlunsplit(url)
         return encoded_link
 
@@ -306,6 +312,28 @@ class Spanish_Inspire_Catastral_Downloader:
             raise
         return
 
+    def catastro_ca_path(self):
+        return os.path.join(
+            self.plugin_dir,
+            'certificates',
+            'AC_Raiz_FNMT-RCM_Servidores_Seguros.pem')
+
+    def qt_ssl_configuration(self):
+        certificates = QtNetwork.QSslCertificate.fromPath(
+            self.catastro_ca_path())
+        if not certificates:
+            raise IOError('No se pudo cargar el certificado raiz de la FNMT')
+
+        configuration = QtNetwork.QSslConfiguration.defaultConfiguration()
+        configuration.setCaCertificates(
+            configuration.caCertificates() + certificates)
+        return configuration
+
+    def ssl_context(self):
+        context = ssl.create_default_context()
+        context.load_verify_locations(cafile=self.catastro_ca_path())
+        return context
+
     def search_url(self, inecode_catastro, tipo, codtipo, wd):
 
         inecode_catastro = inecode_catastro.split(' - ')[0]
@@ -313,6 +341,7 @@ class Spanish_Inspire_Catastral_Downloader:
         ATOM = f'{ULR_CATASTRO}/INSPIRE/{tipo}/{CODPROV}/ES.SDGC.{codtipo}.atom_{CODPROV}.xml?tipo={tipo}&wd={wd}'
 
         req = QtNetwork.QNetworkRequest(QUrl(ATOM))
+        req.setSslConfiguration(self.qt_ssl_configuration())
         self.manager_ATOM.get(req)
 
     def generate_download_url(self, reply):
@@ -322,6 +351,22 @@ class Spanish_Inspire_Catastral_Downloader:
         inecode_catastro = self.dlg.comboBox_municipality.currentText().split(' - ')[0]
 
         er = reply.error()
+
+        if er != QtNetwork.QNetworkReply.NetworkError.NoError:
+            QApplication.restoreOverrideCursor()
+            if er == QtNetwork.QNetworkReply.NetworkError.SslHandshakeFailedError:
+                msg = self.tr(
+                    'Catastro SSL certificate could not be verified. '
+                    'Update the plugin or contact its maintainer.')
+            else:
+                txt = self.tr('Could not read the Catastro ATOM service')
+                msg = f'{txt}: {reply.errorString()}'
+            QgsMessageLog.logMessage(
+                f'{msg}: {reply.errorString()}',
+                'SICD', level=Qgis.Critical)
+            self.msgBar.pushMessage(msg, level=Qgis.Critical, duration=10)
+            self.dlg.progressBar.setValue(0)
+            return
 
         if er == QtNetwork.QNetworkReply.NetworkError.NoError:
             bytes_string = reply.readAll()
@@ -364,7 +409,7 @@ class Spanish_Inspire_Catastral_Downloader:
         if not os.path.exists(zip_file):
             e_url = self.encode_url(url)
             try:
-                request.urlretrieve(e_url, zip_file, self.reporthook)
+                self.retrieve_zip(e_url, zip_file)
 
                 QgsMessageLog.logMessage(f"7.4 Ficheros descargados correctamente en {self.data_dir}", 'SICD',
                                          level=Qgis.Success)
@@ -373,8 +418,20 @@ class Spanish_Inspire_Catastral_Downloader:
                 self.msgBar.pushMessage(msg, level=Qgis.Success, duration=5)
                 self.unzip_files(self.data_dir)
 
-            except:
+            except Exception as err:
                 shutil.rmtree(self.data_dir)
+                reason = err.reason if isinstance(err, error.URLError) else err
+                if isinstance(reason, ssl.SSLCertVerificationError):
+                    QApplication.restoreOverrideCursor()
+                    msg = self.tr(
+                        'Catastro SSL certificate could not be verified. '
+                        'Update the plugin or contact its maintainer.')
+                    QgsMessageLog.logMessage(
+                        f'{msg} {err}', 'SICD', level=Qgis.Critical)
+                    self.msgBar.pushMessage(
+                        msg, level=Qgis.Critical, duration=10)
+                    self.dlg.progressBar.setValue(0)
+                    return
                 raise
         else:
             QApplication.restoreOverrideCursor()
@@ -386,6 +443,37 @@ class Spanish_Inspire_Catastral_Downloader:
 
             self.msgBar.pushMessage(msg, level=Qgis.Critical)
             pass
+
+    def retrieve_zip(self, url, zip_file):
+        """Download and validate a ZIP using Catastro's CA."""
+        handlers = [request.HTTPSHandler(context=self.ssl_context())]
+        if (_proxy is not None and _proxy != "") and (_port is not None and _port != ""):
+            handlers.append(request.ProxyHandler({'http': '%s:%s' % (_proxy, _port),
+                                                  'https': '%s:%s' % (_proxy, _port)}))
+        else:
+            handlers.append(request.ProxyHandler({}))
+        opener = request.build_opener(*handlers)
+
+        block_size = 64 * 1024
+        with opener.open(url, timeout=120) as response:
+            content_type = (response.headers.get('Content-Type') or '').lower()
+            total_size = int(response.headers.get('Content-Length') or 0)
+            if 'text/html' in content_type:
+                raise IOError(
+                    'Catastro devolvio una pagina HTML en lugar de un ZIP para %s' % url)
+            with open(zip_file, 'wb') as handle:
+                block_number = 0
+                while True:
+                    chunk = response.read(block_size)
+                    if not chunk:
+                        break
+                    handle.write(chunk)
+                    block_number += 1
+                    self.reporthook(block_number, block_size, total_size)
+
+        if not zipfile.is_zipfile(zip_file):
+            os.remove(zip_file)
+            raise IOError('El fichero descargado no es un ZIP valido: %s' % url)
 
     def unzip_files(self, wd):
 
@@ -402,8 +490,8 @@ class Spanish_Inspire_Catastral_Downloader:
                 msg = self.tr("Select at least one data set to download")
                 self.msgBar.pushMessage(msg, level=Qgis.Critical)
                 return
-        except:
-
+        except Exception as err:
+            QgsMessageLog.logMessage(f'08.2 Error descomprimiendo: {err}', 'SICD', level=Qgis.Critical)
             self.msgBar.pushMessage(self.tr("An error occurred while decompressing the file."), level=Qgis.Warning, duration=3)
 
         QApplication.restoreOverrideCursor()
