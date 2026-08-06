@@ -29,10 +29,9 @@ import shutil
 import socket
 import ssl
 import subprocess
-import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
-from urllib import parse, request
+from urllib import error, parse, request
 
 # Import the PyQt and QGIS libraries
 from qgis.PyQt.QtCore import Qt
@@ -71,14 +70,6 @@ CODPROV = ''
 CODMUNI = ''
 ULR_CATASTRO = 'https://www.catastro.hacienda.gob.es'
 
-# SHA-256 fingerprint of the root CA that signs the certificate of
-# www.catastro.hacienda.gob.es: "AC RAIZ FNMT-RCM SERVIDORES SEGUROS" (FNMT-RCM).
-# This root is NOT shipped by every platform trust store (notably macOS, and it is
-# not present in the certifi bundle that QGIS uses for Python), which makes the
-# TLS handshake fail and the download silently stall at 0%. We only trust it when
-# the fingerprint matches exactly (certificate pinning), never blindly.
-CATASTRO_ROOT_CA_SHA256 = '554153b13d2cf9ddb753bfbe1a4e0ae08d0aa4187058fe60a2b862b2e4b87bcb'
-
 class Spanish_Inspire_Catastral_Downloader:
     """QGIS Plugin Implementation."""
 
@@ -98,7 +89,10 @@ class Spanish_Inspire_Catastral_Downloader:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale = QSettings().value('locale/userLocale', 'en')
+        if hasattr(locale, 'value'):
+            locale = locale.value()
+        locale = str(locale or 'en')[:2]
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
@@ -287,12 +281,7 @@ class Spanish_Inspire_Catastral_Downloader:
 
         url = parse.urlsplit(url)
         url = list(url)
-        # The Catastro ATOM feed replaces every non-ASCII character of the
-        # municipality folder with a blank, so entries such as
-        # "08221-SANT LLORENC SAVALL" or "08005-L'AMETLLA DEL VALLES" are
-        # published with a double blank while the real folder on the server has
-        # a single one. Collapsing runs of blanks (and trimming each segment)
-        # makes those municipalities downloadable again.
+        # Catastro sometimes publishes repeated blanks in municipality paths.
         url[2] = parse.quote('/'.join(' '.join(part.split())
                                       for part in url[2].split('/')))
         encoded_link = parse.urlunsplit(url)
@@ -323,61 +312,26 @@ class Spanish_Inspire_Catastral_Downloader:
             raise
         return
 
-    # ------------------------------------------------------------------
-    # TLS helpers
-    # ------------------------------------------------------------------
     def catastro_ca_path(self):
-        """Path of the temporary PEM where the Catastro root CA is cached."""
-        return os.path.join(tempfile.gettempdir(), 'sicd_catastro_root_ca.pem')
+        return os.path.join(
+            self.plugin_dir,
+            'certificates',
+            'AC_Raiz_FNMT-RCM_Servidores_Seguros.pem')
 
-    def remember_root_ca(self, reply):
-        """Cache the root CA of the Catastro chain if its fingerprint matches.
+    def qt_ssl_configuration(self):
+        certificates = QtNetwork.QSslCertificate.fromPath(
+            self.catastro_ca_path())
+        if not certificates:
+            raise IOError('No se pudo cargar el certificado raiz de la FNMT')
 
-        The certificate is only stored when its SHA-256 fingerprint is exactly
-        the one of the FNMT root documented in CATASTRO_ROOT_CA_SHA256, so this
-        can never be used to trust an arbitrary certificate.
-        """
-        try:
-            chain = reply.sslConfiguration().peerCertificateChain()
-            if not chain:
-                return False
-            root = chain[-1]
-            # Qt5 exposes the enum unscoped, Qt6 only through .Algorithm
-            sha256 = getattr(QCryptographicHash, 'Sha256', None)
-            if sha256 is None:
-                sha256 = QCryptographicHash.Algorithm.Sha256
-            digest = bytes(root.digest(sha256).toHex()).decode()
-            if digest != CATASTRO_ROOT_CA_SHA256:
-                return False
-            with open(self.catastro_ca_path(), 'wb') as handle:
-                handle.write(bytes(root.toPem()))
-            return True
-        except Exception:
-            return False
-
-    def on_ssl_errors(self, reply, errors):
-        """Accept the Catastro chain when it is anchored on the known FNMT root."""
-        if self.remember_root_ca(reply):
-            QgsMessageLog.logMessage(
-                '06.0 Cadena TLS de Catastro anclada en la raiz FNMT conocida; '
-                'se acepta explicitamente (la raiz no esta en el almacen del sistema).',
-                'SICD', level=Qgis.Info)
-            reply.ignoreSslErrors()
-        else:
-            QgsMessageLog.logMessage(
-                '06.0 Errores TLS no reconocidos: %s'
-                % ', '.join(e.errorString() for e in errors),
-                'SICD', level=Qgis.Critical)
+        configuration = QtNetwork.QSslConfiguration.defaultConfiguration()
+        configuration.setCaCertificates(
+            configuration.caCertificates() + certificates)
+        return configuration
 
     def ssl_context(self):
-        """Default SSL context, extended with the cached Catastro root CA."""
         context = ssl.create_default_context()
-        extra = self.catastro_ca_path()
-        if os.path.exists(extra):
-            try:
-                context.load_verify_locations(cafile=extra)
-            except Exception:
-                pass
+        context.load_verify_locations(cafile=self.catastro_ca_path())
         return context
 
     def search_url(self, inecode_catastro, tipo, codtipo, wd):
@@ -387,6 +341,7 @@ class Spanish_Inspire_Catastral_Downloader:
         ATOM = f'{ULR_CATASTRO}/INSPIRE/{tipo}/{CODPROV}/ES.SDGC.{codtipo}.atom_{CODPROV}.xml?tipo={tipo}&wd={wd}'
 
         req = QtNetwork.QNetworkRequest(QUrl(ATOM))
+        req.setSslConfiguration(self.qt_ssl_configuration())
         self.manager_ATOM.get(req)
 
     def generate_download_url(self, reply):
@@ -398,17 +353,20 @@ class Spanish_Inspire_Catastral_Downloader:
         er = reply.error()
 
         if er != QtNetwork.QNetworkReply.NetworkError.NoError:
-            # Without this branch a failed request left the plugin stuck at 0%
-            # with no message at all (see issues #26, #27 and #28).
             QApplication.restoreOverrideCursor()
-            txt = self.tr('Could not read the Catastro ATOM service')
-            msg = f'{txt}: {reply.errorString()}'
-            QgsMessageLog.logMessage(msg, 'SICD', level=Qgis.Critical)
+            if er == QtNetwork.QNetworkReply.NetworkError.SslHandshakeFailedError:
+                msg = self.tr(
+                    'Catastro SSL certificate could not be verified. '
+                    'Update the plugin or contact its maintainer.')
+            else:
+                txt = self.tr('Could not read the Catastro ATOM service')
+                msg = f'{txt}: {reply.errorString()}'
+            QgsMessageLog.logMessage(
+                f'{msg}: {reply.errorString()}',
+                'SICD', level=Qgis.Critical)
             self.msgBar.pushMessage(msg, level=Qgis.Critical, duration=10)
             self.dlg.progressBar.setValue(0)
             return
-
-        self.remember_root_ca(reply)
 
         if er == QtNetwork.QNetworkReply.NetworkError.NoError:
             bytes_string = reply.readAll()
@@ -460,8 +418,20 @@ class Spanish_Inspire_Catastral_Downloader:
                 self.msgBar.pushMessage(msg, level=Qgis.Success, duration=5)
                 self.unzip_files(self.data_dir)
 
-            except:
+            except Exception as err:
                 shutil.rmtree(self.data_dir)
+                reason = err.reason if isinstance(err, error.URLError) else err
+                if isinstance(reason, ssl.SSLCertVerificationError):
+                    QApplication.restoreOverrideCursor()
+                    msg = self.tr(
+                        'Catastro SSL certificate could not be verified. '
+                        'Update the plugin or contact its maintainer.')
+                    QgsMessageLog.logMessage(
+                        f'{msg} {err}', 'SICD', level=Qgis.Critical)
+                    self.msgBar.pushMessage(
+                        msg, level=Qgis.Critical, duration=10)
+                    self.dlg.progressBar.setValue(0)
+                    return
                 raise
         else:
             QApplication.restoreOverrideCursor()
@@ -475,13 +445,7 @@ class Spanish_Inspire_Catastral_Downloader:
             pass
 
     def retrieve_zip(self, url, zip_file):
-        """Download `url` into `zip_file` reporting progress.
-
-        Replaces request.urlretrieve() so that (a) the SSL context can include
-        the Catastro root CA and (b) the payload is validated: the service
-        answers with an HTML page (HTTP 200) when the path does not exist, which
-        used to be saved as a corrupt .zip and failed silently later on.
-        """
+        """Download and validate a ZIP using Catastro's CA."""
         handlers = [request.HTTPSHandler(context=self.ssl_context())]
         if (_proxy is not None and _proxy != "") and (_port is not None and _port != ""):
             handlers.append(request.ProxyHandler({'http': '%s:%s' % (_proxy, _port),
@@ -712,7 +676,6 @@ class Spanish_Inspire_Catastral_Downloader:
 
                 self.manager_ATOM = QtNetwork.QNetworkAccessManager()
 
-                self.manager_ATOM.sslErrors.connect(self.on_ssl_errors)
                 self.manager_ATOM.finished.connect(self.generate_download_url)
 
                 if self.dlg.checkBox_parcels.isChecked():
